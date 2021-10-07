@@ -41,12 +41,24 @@ class Citizen(db.Model):
         self.vaccine_taken = []
 
     def __str__(self):
-        return f"citizen_id = {self.citizen_id}, fullname = {self.name} {self.surname}, birth_date = {self.birth_date}, occupation = {self.occupation},address = {self.address}"
-
+        data = f"\"citizen_id\": {self.citizen_id},<br> \"name\": {self.name},<br>\"surname\": {self.surname},<br>\"birth_date\": {self.birth_date},<br>\"occupation\": {self.occupation},<br> \"address\": {self.address},<br> \"vaccine_taken\": {self.vaccine_taken}"
+        return "<p>{</p>"+data+"<p>}</p>"
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/citizen')
+def citizen():
+    string = "<h1>Citizen Datebase</h1>"
+    string += "<h2>this page is not json 555+</h2>"
+    string += "<h3>current database has " + str(db.session.query(Citizen).count()) + " person(s)</h3>"
+    string += "<p>{</p>"
+    for person in db.session.query(Citizen).all():
+        string += str(person)
+    string += "<p>}</p>"
+    return string
 
 
 @app.route('/registration', methods=['POST'])
