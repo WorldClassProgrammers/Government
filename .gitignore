@@ -1,0 +1,26 @@
+*.class
+bin/
+build/
+out/
+.DS_[Ss]tore
+*.log
+.env
+
+# Python files
+__pycache__
+*.pyc
+
+# IDE files
+.idea
+*.iml
+*.ctxt
+package.bluej
+.classpath
+classpath
+.settings
+.project
+.nbproject
+.vscode
+
+# Other
+mydb_runner.py
