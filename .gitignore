@@ -21,6 +21,3 @@ classpath
 .project
 .nbproject
 .vscode
-
-# Other
-mydb_runner.py
