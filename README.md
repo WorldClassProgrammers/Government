@@ -11,10 +11,13 @@ SQLALCHEMY_DATABASE_URI=postgresql://<USERNAME>:<PASSEORD>@localhost/government
 
 ## APIs
 
-- (index)
-- POST: /registration -> add a person data to database 'citizen'
-  ![alt text](static/images/registration.png)
-- GET: /citizen -> check citizen table
+- /index
+- /registration
+  - POST: add a person data to database 'citizen'
+    ![alt text](static/images/registration.png)
+- /citizen
+  - GET: check citizen table
+  - DELETE: reset citizen table (delete all rows)
 
 ## Basic CMD
 

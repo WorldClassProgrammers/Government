@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
@@ -12,13 +12,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-def delta_year(birth_date):
-    for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y'):
+def parsing_date(birth_date: str):
+    for fmt in ('%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
         try:
-            birth_date = datetime.strptime(birth_date, fmt)
+            return datetime.strptime(birth_date, fmt)
         except ValueError:
-            {"feedback":"registration fail: invalid birth date format"}
+            pass
+    raise ValueError('invalid date format')
+
+
+def delta_year(birth_date: datetime):
     return datetime.now().year - birth_date.year
+
 
 class Citizen(db.Model):
     __tablename__ = 'citizen'
@@ -62,7 +67,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/citizen')
+@app.route('/citizen', methods=['GET'])
 def citizen():
     tbody = ""
     for person in db.session.query(Citizen).all():
@@ -87,6 +92,16 @@ def citizen():
     return html
 
 
+@app.route('/citizen', methods=['DELETE'])
+def reset_citizen_db():
+    try:
+        deleted_time = db.session.query(Citizen).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+    return redirect(url_for('citizen'))
+   
+ 
 @app.route('/registration', methods=['POST'])
 def registration():
     if request.method == 'POST':
@@ -97,19 +112,24 @@ def registration():
         occupation = request.values['occupation']
         address = request.values['address']
 
-        if not (citizen_id and name and surname and birth_date and occupation and address):
+        if not (citizen_id and name and surname and birth_date and occupation
+                and address):
             return {"feedback": "registration fail: missing some attribute"}
-        
+
         if not (citizen_id.isdigit() and len(citizen_id) == 13):
             return {"feedback": "registration fail: invalid citizen ID"}
-        
-        if delta_year(birth_date) < 12:
-            return {"feedback": "registration fail: not archived minimum age"}
-        
+
+        try:
+            birth_date = parsing_date(birth_date)
+            if delta_year(birth_date) < 12:
+                return {"feedback": "registration fail: not archived minimum age"}
+        except ValueError:
+            return {"feedback": "registration fail: invalid birth date format"}
+
         if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() > 0:
-            return {"feedback":"registration fail: this person already registed"}
-        
-        data = Citizen(int(citizen_id), name, surname, birth_date,occupation, address)
+            return {"feedback": "registration fail: this person already registed"}
+
+        data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
         db.session.add(data)
         db.session.commit()
         return {"feedback": "registration success!"}
