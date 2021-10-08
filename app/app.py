@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
-from func import *
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -11,6 +11,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
+def delta_year(birth_date):
+    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+    return datetime.now().year - birth_date.year
 
 class Citizen(db.Model):
     __tablename__ = 'citizen'
