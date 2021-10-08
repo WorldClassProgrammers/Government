@@ -4,22 +4,10 @@ import os
 
 app = Flask(__name__)
 
-ENV = 'production'
-
-if os.getenv('ENV'):
-    ENV = os.getenv('ENV')
-
-if ENV == 'development':
-    app.debug = os.getenv('DEBUG')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-        'SQLALCHEMY_DATABASE_URI')
-else:
-    app.debug = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://ptuonyzzfckicd:8a545685a22568853e9f318bb29be7f572ae85ec44384f8131d826156bc161bf@ec2-23-23-162-138.compute-1.amazonaws.com:5432/d47paciesignoo"
-
+app.debug = os.getenv('DEBUG')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 
 class Citizen(db.Model):
     __tablename__ = 'citizen'
@@ -58,7 +46,8 @@ def index():
 def citizen():
     string = "<h1>Citizen Datebase</h1>"
     string += "<h2>this page is not json 555+</h2>"
-    string += "<h3>current database has " + str(db.session.query(Citizen).count()) + " person(s)</h3>"
+    string += "<h3>current database has " + str(
+        db.session.query(Citizen).count()) + " person(s)</h3>"
     string += "<p>{</p>"
     for person in db.session.query(Citizen).all():
         string += str(person)
@@ -80,7 +69,8 @@ def registration():
         if citizen_id and name and surname and birth_date and occupation and address:
             if db.session.query(Citizen).filter(
                     Citizen.citizen_id == citizen_id).count() == 0:
-                data = Citizen(citizen_id, name, surname, birth_date, occupation, address)
+                data = Citizen(citizen_id, name, surname, birth_date,
+                               occupation, address)
                 db.session.add(data)
                 db.session.commit()
                 return {"feedback": "registration success!"}
