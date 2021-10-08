@@ -13,7 +13,11 @@ db = SQLAlchemy(app)
 
 
 def delta_year(birth_date):
-    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+    for fmt in ('%Y-%m-%d', '%d.%m.%Y', '%d/%m/%Y'):
+        try:
+            birth_date = datetime.strptime(birth_date, fmt)
+        except ValueError:
+            {"feedback":"registration fail: invalid birth date format"}
     return datetime.now().year - birth_date.year
 
 class Citizen(db.Model):
