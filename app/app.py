@@ -91,7 +91,7 @@ def registration():
 
         try:
             birth_date = parsing_date(birth_date)
-            if delta_year(birth_date) < 12:
+            if delta_year(birth_date) <= 12:
                 return {"feedback": "registration fail: not archived minimum age"}
         except ValueError:
             return {"feedback": "registration fail: invalid birth date format"}

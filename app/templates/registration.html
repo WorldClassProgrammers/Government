@@ -16,14 +16,14 @@
     <div class="container">
     <div class="w-100 my-3" style="text-align: center;" >
         <h1>Registration</h1>
-        <p>This API is to register citizen information</p>
+        <h5>This API is to register citizen information</h5>
     </div>
     <p>Here is the Rule:</p>
     <ul>
-        <li>All 6 keys with are required! [citizen_id, name, surname, birth_date, occupation, address]</li>
-        <li>citizen_id: must not be the same as other</li>
+        <li>All 6 keys are required! [citizen_id, name, surname, birth_date, occupation, address]</li>
+        <li>citizen_id: must be unique</li>
         <li>citizen_id: need to be number of 13 digits</li>
-        <li>birth_date: need to be in one of required formats ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']</li>
+        <li>birth_date: need to be in one of available formats ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']</li>
         <li>birth_date: citizen must be at least 12 years old</li>
     </ul>
     </div>

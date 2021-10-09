@@ -9,12 +9,15 @@ DEBUG=True
 SQLALCHEMY_DATABASE_URI=postgresql://<USERNAME>:<PASSEORD>@localhost/government
 ```
 
+Run [app.py](app/app.py)
+
 ## APIs
 
 - [/index](https://wcg-apis.herokuapp.com)
 
 - [/registration](https://wcg-apis.herokuapp.com/registration)
 
+  - GET: API Usage, detail, format
   - POST: add a person data to database 'citizen'
     ![alt text](static/images/registration.png)
 
@@ -26,15 +29,15 @@ SQLALCHEMY_DATABASE_URI=postgresql://<USERNAME>:<PASSEORD>@localhost/government
 
 ```zsh
 # install dependencies
-> pipenv shell
+$ pipenv shell
 # install pip to pipFile
-> pipenv install <PACKAGE_NAME>
+$ pipenv install <PACKAGE_NAME>
 
 # create requirements.txt
-> pip freeze > requirements.txt
+$ pip freeze > requirements.txt
 ```
 
-```zsh
+```python shell
 # initial database
 > from app import db
 > db.create_all()
