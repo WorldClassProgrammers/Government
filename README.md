@@ -17,7 +17,7 @@ Run [app.py](app/app.py)
 
 - [/registration](https://wcg-apis.herokuapp.com/registration)
 
-  - GET: API Usage, detail, format
+  - GET: API usage, detail, format
   - POST: add a person data to database 'citizen'
     ![alt text](static/images/registration.png)
 
