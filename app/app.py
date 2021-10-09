@@ -13,7 +13,7 @@ db = SQLAlchemy(app)
 
 
 def parsing_date(birth_date: str):
-    for fmt in ('%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
+    for fmt in ('%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
         try:
             return datetime.strptime(birth_date, fmt)
         except ValueError:
@@ -67,6 +67,44 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/registration', methods=['GET'])
+def registration_usage():
+    return render_template('registration.html')
+
+
+@app.route('/registration', methods=['POST'])
+def registration():
+    if request.method == 'POST':
+        citizen_id = request.values['citizen_id']
+        name = request.values['name']
+        surname = request.values['surname']
+        birth_date = request.values['birth_date']
+        occupation = request.values['occupation']
+        address = request.values['address']
+
+        if not (citizen_id and name and surname and birth_date and occupation
+                and address):
+            return {"feedback": "registration fail: missing some attribute"}
+
+        if not (citizen_id.isdigit() and len(citizen_id) == 13):
+            return {"feedback": "registration fail: invalid citizen ID"}
+
+        try:
+            birth_date = parsing_date(birth_date)
+            if delta_year(birth_date) < 12:
+                return {"feedback": "registration fail: not archived minimum age"}
+        except ValueError:
+            return {"feedback": "registration fail: invalid birth date format"}
+
+        if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() > 0:
+            return {"feedback": "registration fail: this person already registed"}
+
+        data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
+        db.session.add(data)
+        db.session.commit()
+        return {"feedback": "registration success!"}
+
+
 @app.route('/citizen', methods=['GET'])
 def citizen():
     tbody = ""
@@ -100,39 +138,6 @@ def reset_citizen_db():
     except:
         db.session.rollback()
     return redirect(url_for('citizen'))
-   
- 
-@app.route('/registration', methods=['POST'])
-def registration():
-    if request.method == 'POST':
-        citizen_id = request.values['citizen_id']
-        name = request.values['name']
-        surname = request.values['surname']
-        birth_date = request.values['birth_date']
-        occupation = request.values['occupation']
-        address = request.values['address']
-
-        if not (citizen_id and name and surname and birth_date and occupation
-                and address):
-            return {"feedback": "registration fail: missing some attribute"}
-
-        if not (citizen_id.isdigit() and len(citizen_id) == 13):
-            return {"feedback": "registration fail: invalid citizen ID"}
-
-        try:
-            birth_date = parsing_date(birth_date)
-            if delta_year(birth_date) < 12:
-                return {"feedback": "registration fail: not archived minimum age"}
-        except ValueError:
-            return {"feedback": "registration fail: invalid birth date format"}
-
-        if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() > 0:
-            return {"feedback": "registration fail: this person already registed"}
-
-        data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
-        db.session.add(data)
-        db.session.commit()
-        return {"feedback": "registration success!"}
 
 
 if __name__ == '__main__':
