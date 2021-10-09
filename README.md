@@ -11,11 +11,14 @@ SQLALCHEMY_DATABASE_URI=postgresql://<USERNAME>:<PASSEORD>@localhost/government
 
 ## APIs
 
-- /index
-- /registration
+- [/index](https://wcg-apis.herokuapp.com)
+
+- [/registration](https://wcg-apis.herokuapp.com/registration)
+
   - POST: add a person data to database 'citizen'
     ![alt text](static/images/registration.png)
-- /citizen
+
+- [/citizen](https://wcg-apis.herokuapp.com/citizen)
   - GET: check citizen table
   - DELETE: reset citizen table (delete all rows)
 
