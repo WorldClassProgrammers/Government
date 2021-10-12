@@ -6,8 +6,8 @@ import os
 
 app = Flask(__name__)
 
-app.debug = os.getenv('DEBUG')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.debug = os.getenv("DEBUG")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -62,6 +62,34 @@ class Citizen(db.Model):
         """
 
 
+class Reservation(db.Model):
+    """Reservation data include citizen id, name of the site, name of the vaccine, and timestamp."""
+    __tablename__ = 'reservation'
+    id = db.Column(db.Integer, primary_key=True)
+    citizen_id = db.Column(db.Numeric, unique=True)
+    site_name = db.Column(db.String(200))
+    vaccine_name = db.Column(db.String(200))
+    timestamp = db.Column(db.Date)
+
+    # vaccine_taken = db.Column(db.PickleType(mutable=True))
+
+    def __init__(self, citizen_id, site_name, vaccine_name, timestamp):
+        self.citizen_id = citizen_id
+        self.site_name = site_name
+        self.vaccine_name = vaccine_name
+        self.timestamp = timestamp
+
+    def __str__(self):
+        return f"""
+        <tr>
+            <th scope="row">{self.citizen_id}</th>
+            <td>{self.site_name}</td>
+            <td>{self.vaccine_name}</td>
+            <td>{self.timestamp}</td>
+        </tr>
+        """
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -103,6 +131,29 @@ def registration():
         db.session.add(data)
         db.session.commit()
         return {"feedback": "registration success!"}
+
+
+@app.route('/reservation', methods=['POST'])
+def reservation():
+    """Add reservation data ti the database"""
+
+    if request.method == 'POST':
+        citizen_id = request.values['citizen_id']
+        site_name = request.values['site_name']
+        vaccine_name = request.values['vaccine_name']
+        timestamp = request.values['timestamp']
+        data = ""
+
+        try:
+            timestamp = parsing_date(timestamp)
+            data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp)
+        except ValueError:
+            data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp=None)
+            return str(data)
+
+        db.session.add(data)
+        db.session.commit()
+        return {"feedback": "reservation success!"}
 
 
 @app.route('/citizen', methods=['GET'])
