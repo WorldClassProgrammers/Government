@@ -63,7 +63,16 @@ class Citizen(db.Model):
 
 
 class Reservation(db.Model):
-    """Reservation data include citizen id, name of the site, name of the vaccine, and timestamp."""
+    """
+    A class to represent a reservation data.
+
+    Attributes:
+        id (int): reservation ID
+        citizen_id (int): citizen ID
+        site_name (str): name of the place for vaccination
+        vaccine_name (str): name of vaccine
+        timestamp (date): Date and time of vaccination
+    """
     __tablename__ = 'reservation'
     id = db.Column(db.Integer, primary_key=True)
     citizen_id = db.Column(db.Numeric, unique=True)
@@ -135,8 +144,9 @@ def registration():
 
 @app.route('/reservation', methods=['POST'])
 def reservation():
-    """Add reservation data ti the database"""
-
+    """
+    Add reservation data to the database
+    """
     if request.method == 'POST':
         citizen_id = request.values['citizen_id']
         site_name = request.values['site_name']
