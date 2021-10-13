@@ -142,15 +142,21 @@ def reservation():
         site_name = request.values['site_name']
         vaccine_name = request.values['vaccine_name']
         timestamp = request.values['timestamp']
-        data = ""
+
+        if not (citizen_id and site_name and vaccine_name and timestamp):
+            return {"feedback": "reservation fail: missing some attribute"}
+
+        if not (citizen_id.isdigit() and len(citizen_id) == 13): 
+            return {"feedback": "reservation fail: invalid citizen ID"}
 
         try:
-            timestamp = parsing_date(timestamp)
-            data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp)
-        except ValueError:
-            data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp=None)
-            return str(data)
+            timestamp = parsing_date(timestamp)  # Convert timestamp to datetime object.
+            if timestamp <= datetime.now():  # Can only reserve vaccine in the future.
+                return {"feedback": "reservation fail: invalid timestamp"}
+        except ValueError:  # If timestamp can't be convert to datetime object.
+            return {"feedback": "reservation fail: invalid timestamp"}
 
+        data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp)
         db.session.add(data)
         db.session.commit()
         return {"feedback": "reservation success!"}
