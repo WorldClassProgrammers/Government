@@ -71,7 +71,9 @@ class Reservation(db.Model):
         citizen_id (int): citizen ID
         site_name (str): name of the place for vaccination
         vaccine_name (str): name of vaccine
-        timestamp (date): Date and time of vaccination
+        timestamp (date): Date and time of reservation
+        queue (datetime): Date and time of vaccination
+        checked (bool): Check whether you got the vaccine or not
     """
     __tablename__ = 'reservation'
     id = db.Column(db.Integer, primary_key=True)
@@ -79,14 +81,18 @@ class Reservation(db.Model):
     site_name = db.Column(db.String(200))
     vaccine_name = db.Column(db.String(200))
     timestamp = db.Column(db.Date)
+    queue = db.Column(db.Date)
+    checked = db.Column(db.Boolean)
 
     # vaccine_taken = db.Column(db.PickleType(mutable=True))
 
-    def __init__(self, citizen_id, site_name, vaccine_name, timestamp):
+    def __init__(self, citizen_id, site_name, vaccine_name, timestamp, queue, checked):
         self.citizen_id = citizen_id
         self.site_name = site_name
         self.vaccine_name = vaccine_name
         self.timestamp = timestamp
+        self.queue = queue
+        self.checked = checked
 
     def __str__(self):
         return f"""
@@ -95,6 +101,8 @@ class Reservation(db.Model):
             <td>{self.site_name}</td>
             <td>{self.vaccine_name}</td>
             <td>{self.timestamp}</td>
+            <td>{self.queue}</td>
+            <td>{self.checked}</td>
         </tr>
         """
 
@@ -152,6 +160,8 @@ def reservation():
         site_name = request.values['site_name']
         vaccine_name = request.values['vaccine_name']
         timestamp = request.values['timestamp']
+        queue = request.values['queue']
+        checked = request.values['checked']
 
         if not (citizen_id and site_name and vaccine_name and timestamp):
             return {"feedback": "reservation fail: missing some attribute"}
@@ -161,12 +171,13 @@ def reservation():
 
         try:
             timestamp = parsing_date(timestamp)  # Convert timestamp to datetime object.
-            if timestamp <= datetime.now():  # Can only reserve vaccine in the future.
+            queue = parsing_date(queue)  # Convert queue to datetime object.
+            if queue <= datetime.now():  # Can only reserve vaccine in the future.
                 return {"feedback": "reservation fail: invalid timestamp"}
         except ValueError:  # If timestamp can't be convert to datetime object.
             return {"feedback": "reservation fail: invalid timestamp"}
 
-        data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp)
+        data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp, queue, checked)
         db.session.add(data)
         db.session.commit()
         return {"feedback": "reservation success!"}
