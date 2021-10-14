@@ -175,18 +175,30 @@ def citizen():
     return html
 
 
-@app.route('/citizen', methods=['UPDATE'])
-def update_citizen_db(citizen_id,vaccine_taken):
-    if request.method == 'UPDATE':
+@app.route('/citizen', methods=['PUT'])
+def update_citizen_db():
+    if request.method == 'PUT':
         citizen_id = request.values['citizen_id']
         vaccine_name = request.values['vaccine_name']
-    try:
-        old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
-        return {"test": f"{citizen_id}"}
-        # deleted_time = db.session.query(Citizen.citizen_id == citizen_id).update()
-        # db.session.commit()
-    except:
-        db.session.rollback()
+        try:
+            # 1.
+            old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
+            old_data.vaccine_taken.append(vaccine_name)
+            db.session.commit()
+            # # 2.
+            # old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
+            # old_data.vaccine_taken.append(vaccine_name)
+            # db.session.commit()
+            # # 3.
+            # old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
+            # vaccine_list = old_data.vaccine_taken
+            # vaccine_list.append(vaccine_name)
+            # db.session.update({"vaccine_taken": vaccine_list})
+            # db.session.commit()
+
+            return {"feedbacks": f"{citizen_id} is updated"}
+        except:
+            db.session.rollback()
     return redirect(url_for('citizen'))
 
 
