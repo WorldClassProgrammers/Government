@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
@@ -169,6 +169,9 @@ def reservation():
         if not (citizen_id.isdigit() and len(citizen_id) == 13): 
             return {"feedback": "reservation fail: invalid citizen ID"}
 
+        if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() <= 0:
+            return {"feedback": "reservation fail: citizen ID is not registered"}
+
         try:
             timestamp = parsing_date(timestamp)  # Convert timestamp to datetime object.
             queue = parsing_date(queue)  # Convert queue to datetime object.
@@ -177,10 +180,43 @@ def reservation():
         except ValueError:  # If timestamp can't be convert to datetime object.
             return {"feedback": "reservation fail: invalid timestamp"}
 
+        if type(checked) != bool:
+            if checked.lower() == "false":
+                checked = False
+            elif checked.lower() == "true":
+                checked = True
+            else:
+                return {"feedback": "reservation fail: invalid checked value"}
+
         data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp, queue, checked)
         db.session.add(data)
         db.session.commit()
         return {"feedback": "reservation success!"}
+
+
+@app.route('/cancel_reservation', methods=['DELETE'])
+def cancel_reservation():
+    """
+    Cancel reservation and remove it from the database.
+    """
+    if request.method == 'DELETE':
+        citizen_id = request.values['citizen_id']
+
+        if not (citizen_id):
+            return {"feedback": "cancel reservation failed: no citizen id is given"}
+
+        if not (citizen_id.isdigit() and len(citizen_id) == 13): 
+            return {"feedback": "cancel reservation failed: invalid citizen ID"}
+
+        data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id)
+
+        if data.count() == 0:
+            return {"feedback": "cancel reservation failed: there is no reservation for this citizen id"}
+
+        for elem in data:
+            db.session.delete(elem)
+        db.session.commit()
+    return {"feedback" : "cancel reservation successfully"}
 
 
 @app.route('/citizen', methods=['GET'])
