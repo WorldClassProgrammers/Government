@@ -175,6 +175,21 @@ def citizen():
     return html
 
 
+@app.route('/citizen', methods=['UPDATE'])
+def update_citizen_db(citizen_id,vaccine_taken):
+    if request.method == 'UPDATE':
+        citizen_id = request.values['citizen_id']
+        vaccine_name = request.values['vaccine_name']
+    try:
+        old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
+        return {"test": f"{citizen_id}"}
+        # deleted_time = db.session.query(Citizen.citizen_id == citizen_id).update()
+        # db.session.commit()
+    except:
+        db.session.rollback()
+    return redirect(url_for('citizen'))
+
+
 @app.route('/citizen', methods=['DELETE'])
 def reset_citizen_db():
     """
