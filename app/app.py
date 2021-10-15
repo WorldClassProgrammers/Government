@@ -161,7 +161,7 @@ def reservation():
         vaccine_name = request.values['vaccine_name']
         timestamp = datetime.now()
         queue = request.values['queue']
-        checked = request.values['checked']
+        checked = request.values.get('checked', type=bool)
         json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name, "timestamp": timestamp, "queue": queue, "checked": checked}
 
         if not (citizen_id and site_name and vaccine_name and timestamp):
@@ -179,14 +179,6 @@ def reservation():
                 return jsonify(json_data)
         except ValueError:  # If queue can't be convert to datetime object.
             return jsonify(json_data)
-
-        if type(checked) != bool:
-            if checked.lower() == "false":
-                checked = False
-            elif checked.lower() == "true":
-                checked = True
-            else:
-                return {"feedback": "reservation fail: invalid checked value"}
 
         data = Reservation(int(citizen_id), site_name, vaccine_name, timestamp, queue, checked)
         db.session.add(data)
