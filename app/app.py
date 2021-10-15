@@ -159,9 +159,10 @@ def reservation():
         citizen_id = request.values['citizen_id']
         site_name = request.values['site_name']
         vaccine_name = request.values['vaccine_name']
-        timestamp = request.values['timestamp']
+        timestamp = datetime.now()
         queue = request.values['queue']
         checked = request.values['checked']
+        json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name, "timestamp": timestamp, "queue": queue, "checked": checked}
 
         if not (citizen_id and site_name and vaccine_name and timestamp):
             return {"feedback": "reservation fail: missing some attribute"}
@@ -173,12 +174,11 @@ def reservation():
             return {"feedback": "reservation fail: citizen ID is not registered"}
 
         try:
-            timestamp = parsing_date(timestamp)  # Convert timestamp to datetime object.
             queue = parsing_date(queue)  # Convert queue to datetime object.
             if queue <= datetime.now():  # Can only reserve vaccine in the future.
-                return {"feedback": "reservation fail: invalid timestamp"}
-        except ValueError:  # If timestamp can't be convert to datetime object.
-            return {"feedback": "reservation fail: invalid timestamp"}
+                return jsonify(json_data)
+        except ValueError:  # If queue can't be convert to datetime object.
+            return jsonify(json_data)
 
         if type(checked) != bool:
             if checked.lower() == "false":
