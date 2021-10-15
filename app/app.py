@@ -181,25 +181,16 @@ def update_citizen_db():
         citizen_id = request.values['citizen_id']
         vaccine_name = request.values['vaccine_name']
         try:
-            # 1.
+            citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
             old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
-            old_data.vaccine_taken.append(vaccine_name)
+            vaccine_list = citizen_data.vaccine_taken
+            vaccine_list.append(vaccine_name)
+            old_data.update({"vaccine_taken": vaccine_list})
             db.session.commit()
-            # # 2.
-            # old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
-            # old_data.vaccine_taken.append(vaccine_name)
-            # db.session.commit()
-            # # 3.
-            # old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
-            # vaccine_list = old_data.vaccine_taken
-            # vaccine_list.append(vaccine_name)
-            # db.session.update({"vaccine_taken": vaccine_list})
-            # db.session.commit()
-
-            return {"feedbacks": f"{citizen_id} is updated"}
         except:
             db.session.rollback()
-    return redirect(url_for('citizen'))
+            return {"feedbacks": "Can't find citizen_id in the database"}
+    return {"feedbacks": f"{citizen_id} is updated"}
 
 
 @app.route('/citizen', methods=['DELETE'])
