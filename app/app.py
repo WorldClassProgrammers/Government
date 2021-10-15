@@ -190,7 +190,7 @@ def update_citizen_db():
         except:
             db.session.rollback()
             return {"feedbacks": "Can't find citizen_id in the database"}
-    return {"feedbacks": f"{citizen_id} is updated"}
+        return {"feedbacks": f"{citizen_id} is updated"}
 
 
 @app.route('/citizen', methods=['DELETE'])
