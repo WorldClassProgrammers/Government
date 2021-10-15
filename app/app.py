@@ -193,6 +193,26 @@ def update_citizen_db():
         return {"feedbacks": f"{citizen_id} is updated"}
 
 
+@app.route('/reservation', methods=['PUT'])
+def update_reservation_db():
+    if request.method == 'PUT':
+        citizen_id = request.values['citizen_id']
+        checked = request.values['checked']
+        try:
+            reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
+            old_checked = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id)
+            if not checked:
+                old_checked.update({"checked": checked})
+                db.session.commit()
+            else:
+                db.session.rollback()
+                return {"feedbacks": "Already vaccinated"}
+        except:
+            db.session.rollback()
+            return {"feedbacks": "Can't find citizen_id in the database"}
+    return {"feedbacks": f"{citizen_id} is updated"}
+
+
 @app.route('/citizen', methods=['DELETE'])
 def reset_citizen_db():
     """
