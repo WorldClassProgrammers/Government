@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
-import pytz
-import os
+import os, pytz
 
 app = Flask(__name__)
 
