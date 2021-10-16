@@ -73,8 +73,6 @@ class Citizen(db.Model):
     address = db.Column(db.Text())
     vaccine_taken = db.Column(db.PickleType())
 
-    # vaccine_taken = db.Column(db.PickleType(mutable=True))
-
     def __init__(self, citizen_id, name, surname, birth_date, occupation,
                  address):
         self.citizen_id = citizen_id
@@ -221,32 +219,13 @@ def reservation():
     return {"feedback": "reservation success!"}
 
 
-@app.route('/queue_report', methods=['POST'])
-def update_queue():
-    citizen_id = request.values['citizen_id']
-    queue = request.values['queue']
-    try:
-        queue = datetime.strptime(queue, "%Y-%m-%d %H:%M:%S.%f")
-        if queue <= datetime.now():
-            return {
-                "feedback":
-                "report fail: can only reserve vaccine in the future"
-            }
-    except ValueError:
-        return {"feedback": "report fail: invalid queue datetime format"}
-
-    reservation = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
-    reservation.queue = queue
-    db.session.commit()
-    return {"feedback": "report success!"}
-
-
 @app.route('/reservation', methods=['DELETE'])
 def cancel_reservation():
     """
     Cancel reservation and remove it from the database.
     """
     citizen_id = request.values['citizen_id']
+    
     if not (citizen_id):
         return {"feedback": "cancel reservation failed: no citizen id is given"}
 
@@ -267,8 +246,62 @@ def cancel_reservation():
     return {"feedback": "cancel reservation successfully"}
 
 
+@app.route('/queue_report', methods=['GET'])
+def queue_report_usage():
+    return render_template('queue_report.html')
+
+
+@app.route('/queue_report', methods=['POST'])
+def update_queue():
+    citizen_id = request.values['citizen_id']
+    queue = request.values['queue']
+    
+    try:
+        queue = datetime.strptime(queue, "%Y-%m-%d %H:%M:%S.%f")
+        if queue <= datetime.now():
+            return {
+                "feedback":
+                "report fail: can only reserve vaccine in the future"
+            }
+    except ValueError:
+        return {"feedback": "report fail: invalid queue datetime format"}
+
+    reservation = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
+    reservation.queue = queue
+    db.session.commit()
+    return {"feedback": "report success!"}
+
+
+@app.route('/report_taken', methods=['GET'])
+def report_taken_usage():
+    return render_template('report_taken.html')
+
+
+@app.route('/report_taken', methods=['POST'])
+def update_citizen_db():
+    citizen_id = request.values['citizen_id']
+    vaccine_name = request.values['vaccine_name']
+    
+    try:
+        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+        
+        reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
+        reservation_data.checked = True
+
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedbacks": "report fail"}
+    
+    return {"feedbacks": "report success!"}
+
+
 @app.route('/reservation_database', methods=['GET'])
 def reservation_database():
+    """
+    Render html template that display reservation's information.
+    """
     tbody = ""
     for reservation in db.session.query(Reservation).all():
         tbody += str(reservation)
@@ -315,26 +348,6 @@ def citizen():
             </tr>""",
         tbody=tbody)
     return html
-
-
-@app.route('/report_taken', methods=['POST'])
-def update_citizen_db():
-    citizen_id = request.values['citizen_id']
-    vaccine_name = request.values['vaccine_name']
-    
-    try:
-        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
-        
-        # reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
-        # reservation_data.checked = True
-
-        db.session.commit()
-    except:
-        db.session.rollback()
-        return {"feedbacks": "report fail"}
-    
-    return {"feedbacks": "report success!"}
 
 
 @app.route('/citizen', methods=['DELETE'])

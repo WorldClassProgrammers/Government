@@ -9,28 +9,24 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <title>WCG Document</title>
+    <title>API Usage</title>
 </head>
 
 <body>
     <div class="container">
         <div class="w-100 my-3" style="text-align: center;">
-            <h1>Hello!</h1>
-            <h5>Welcome to World Class Government APIs</h5>
+            <h1>QueueReport</h1>
+            <h5>This API is to report queue (date and time) for a vaccine reservation</h5>
         </div>
         <br>
-        <p>Here is the Path:</p>
+        <p>Here is the Rule:</p>
+        <p>[POST]</p>
         <ul>
-            <li><a href="/registration">Registration API</a></li>
-            <li><a href="/citizen">Citizen Database</a></li>
-            <li><a href="/reservation">Reservation API</a></li>
-            <li><a href="/reservation_database">Reservation Database</a></li>
-            <li><a href="/queue_report">QueueReport API</a></li>
-            <li><a href="/report_taken">ReportTaken API</a></li>
+            <li>All 2 keys are required! [citizen_id, queue]</li>
+            <li>citizen_id: need to be number of 13 digits</li>
+            <li>citizen_id: must have been registered</li>
+            <li>queue: need to be in format ['%Y-%m-%d %H:%M:%S.%f']</li>
         </ul>
-        <br>
-        For more detail: <a href="https://github.com/WorldClassProgrammers/Government-APIs">Government-APIs Github</a>
-    </div>
     </div>
 
     <!-- Optional JavaScript -->
