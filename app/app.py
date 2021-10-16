@@ -123,7 +123,7 @@ class Reservation(db.Model):
         self.citizen_id = citizen_id
         self.site_name = site_name
         self.vaccine_name = vaccine_name
-        self.timestamp = datetime.now()
+        self.timestamp = datetime.utcnow()
 
     def __str__(self):
         print(type(self.timestamp))
