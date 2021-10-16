@@ -175,42 +175,24 @@ def citizen():
     return html
 
 
-@app.route('/citizen', methods=['PUT'])
+@app.route('/report_taken', methods=['POST'])
 def update_citizen_db():
-    if request.method == 'PUT':
-        citizen_id = request.values['citizen_id']
-        vaccine_name = request.values['vaccine_name']
-        try:
-            citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-            old_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id)
-            vaccine_list = citizen_data.vaccine_taken
-            vaccine_list.append(vaccine_name)
-            old_data.update({"vaccine_taken": vaccine_list})
-            db.session.commit()
-        except:
-            db.session.rollback()
-            return {"feedbacks": "Can't find citizen_id in the database"}
-        return {"feedbacks": f"{citizen_id} is updated"}
+    citizen_id = request.values['citizen_id']
+    vaccine_name = request.values['vaccine_name']
+    
+    try:
+        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+        
+        # reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
+        # reservation_data.checked = True
 
-
-@app.route('/reservation', methods=['PUT'])
-def update_reservation_db():
-    if request.method == 'PUT':
-        citizen_id = request.values['citizen_id']
-        checked = request.values['checked']
-        try:
-            reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
-            old_checked = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id)
-            if not checked:
-                old_checked.update({"checked": checked})
-                db.session.commit()
-            else:
-                db.session.rollback()
-                return {"feedbacks": "Already vaccinated"}
-        except:
-            db.session.rollback()
-            return {"feedbacks": "Can't find citizen_id in the database"}
-    return {"feedbacks": f"{citizen_id} is updated"}
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedbacks": "report fail"}
+    
+    return {"feedbacks": "report success!"}
 
 
 @app.route('/citizen', methods=['DELETE'])
