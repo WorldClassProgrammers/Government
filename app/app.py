@@ -13,6 +13,18 @@ db = SQLAlchemy(app)
 
 
 def parsing_date(birth_date: str):
+    """
+    Reparse birthdate into datetime format.
+
+    Args:
+        birth_date (str): birthdate of citizen
+
+    Raises:
+        ValueError: invalid date format
+
+    Returns:
+        struct_time: Birthdate in datetime format.
+    """
     for fmt in ('%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
         try:
             return datetime.strptime(birth_date, fmt)
@@ -22,6 +34,15 @@ def parsing_date(birth_date: str):
 
 
 def delta_year(birth_date: datetime):
+    """
+    Find the age from birthdate.
+
+    Args:
+        birth_date (datetime): birthdate in datetime format
+
+    Returns:
+        int: Age from current year minus birth year.
+    """
     return datetime.now().year - birth_date.year
 
 
@@ -30,6 +51,18 @@ def is_citizen_ID(citizen_id):
 
 
 class Citizen(db.Model):
+    """
+    A class to represent a citizen.
+
+    Attributes:
+        id (int): citizen ID
+        name (str): name
+        surname (str): surname
+        birth_date (str): date of birth
+        occupation (str): current occupation
+        address (str): current home address
+        vaccine_taken (list): list of vaccine taken
+    """
     __tablename__ = 'citizen'
     id = db.Column(db.Integer, primary_key=True)
     citizen_id = db.Column(db.Numeric, unique=True)
@@ -108,16 +141,25 @@ class Reservation(db.Model):
 
 @app.route('/')
 def index():
+    """
+    Render html template for index page.
+    """
     return render_template('index.html')
 
 
 @app.route('/registration', methods=['GET'])
 def registration_usage():
+    """
+    Render template for registration page.
+    """
     return render_template('registration.html')
 
 
 @app.route('/registration', methods=['POST'])
 def registration():
+    """
+    Accept and validate registration information.
+    """
     citizen_id = request.values['citizen_id']
     name = request.values['name']
     surname = request.values['surname']
@@ -250,6 +292,9 @@ def reservation_database():
 
 @app.route('/citizen', methods=['GET'])
 def citizen():
+    """
+    Render html template that display citizen's information.
+    """
     tbody = ""
     for person in db.session.query(Citizen).all():
         tbody += str(person)
@@ -274,6 +319,9 @@ def citizen():
 
 @app.route('/citizen', methods=['DELETE'])
 def reset_citizen_db():
+    """
+    Reset citizen database.
+    """
     try:
         deleted_time = db.session.query(Citizen).delete()
         db.session.commit()
