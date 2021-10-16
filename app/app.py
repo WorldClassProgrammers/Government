@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 app.debug = os.getenv("DEBUG")
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1618@localhost/government" # os.getenv("SQLALCHEMY_DATABASE_URI")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
