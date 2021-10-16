@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 app.debug = os.getenv("DEBUG")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:1618@localhost/government" # os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -115,7 +115,7 @@ class Reservation(db.Model):
     citizen_id = db.Column(db.Numeric)
     site_name = db.Column(db.String(200))
     vaccine_name = db.Column(db.String(200))
-    timestamp = db.Column(db.DateTime, default=datetime.now())
+    timestamp = db.Column(db.DateTime)
     queue = db.Column(db.DateTime, default=None)
     checked = db.Column(db.Boolean, default=False)
 
@@ -123,8 +123,10 @@ class Reservation(db.Model):
         self.citizen_id = citizen_id
         self.site_name = site_name
         self.vaccine_name = vaccine_name
+        self.timestamp = datetime.now()
 
     def __str__(self):
+        print(type(self.timestamp))
         return f"""
         <tr>
             <th scope="row">{self.citizen_id}</th>
