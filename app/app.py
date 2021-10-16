@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
-import os, pytz
+import os
 
 app = Flask(__name__)
 
@@ -122,7 +122,7 @@ class Reservation(db.Model):
         self.citizen_id = citizen_id
         self.site_name = site_name
         self.vaccine_name = vaccine_name
-        self.timestamp = datetime.now(pytz.timezone('Asia/Bangkok'))
+        self.timestamp = datetime.utcnow()
 
     def __str__(self):
         print(type(self.timestamp))
