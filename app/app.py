@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
+import pytz
 import os
 
 app = Flask(__name__)
@@ -10,7 +11,6 @@ app.debug = os.getenv("DEBUG")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 
 def parsing_date(birth_date: str):
     """
@@ -123,7 +123,7 @@ class Reservation(db.Model):
         self.citizen_id = citizen_id
         self.site_name = site_name
         self.vaccine_name = vaccine_name
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(pytz.timezone('Asia/Bangkok'))
 
     def __str__(self):
         print(type(self.timestamp))
