@@ -317,6 +317,26 @@ def citizen():
     return html
 
 
+@app.route('/report_taken', methods=['POST'])
+def update_citizen_db():
+    citizen_id = request.values['citizen_id']
+    vaccine_name = request.values['vaccine_name']
+    
+    try:
+        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+        
+        # reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
+        # reservation_data.checked = True
+
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedbacks": "report fail"}
+    
+    return {"feedbacks": "report success!"}
+
+
 @app.route('/citizen', methods=['DELETE'])
 def reset_citizen_db():
     """
