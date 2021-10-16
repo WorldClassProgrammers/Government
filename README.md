@@ -82,8 +82,19 @@ $ pipenv install <PACKAGE_NAME>
 $ pip freeze > requirements.txt
 ```
 
+set up datatabase
+
+```
+$ cd app
+$ python
+```
+
 ```python shell
-# initial database
 > from app import db
+
+# reset database
+> db.drop_all()
+
+# initial database
 > db.create_all()
 ```
