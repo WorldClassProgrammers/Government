@@ -45,8 +45,20 @@ def delta_year(birth_date: datetime):
     return datetime.now().year - birth_date.year
 
 
-def is_citizen_ID(citizen_id):
+def is_citizen_id(citizen_id):
     return (citizen_id.isdigit() and len(citizen_id) == 13)
+
+
+def is_registered(citizen_id):
+    return db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() > 0
+
+
+def is_reserved(citizen_id):
+    return db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).filter(Reservation.checked == False).count() > 0
+
+
+def get_unchecked_reservations(citizen_id):
+    return db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).filter(Reservation.checked == False)
 
 
 class Citizen(db.Model):
@@ -166,23 +178,21 @@ def registration():
     occupation = request.values['occupation']
     address = request.values['address']
     
-    if not (citizen_id and name and surname and birth_date and occupation
-            and address):
-        return {"feedback": "registration fail: missing some attribute"}
+    if not (citizen_id and name and surname and birth_date and occupation and address):
+        return {"feedback": "registration failed: missing some attribute"}
 
-    if not is_citizen_ID(citizen_id):
-        return {"feedback": "registration fail: invalid citizen ID"}
+    if not is_citizen_id(citizen_id):
+        return {"feedback": "registration failed: invalid citizen ID"}
+    
+    if is_registered(citizen_id):
+        return {"feedback": "registration failed: this person already registed"}
     
     try:
         birth_date = parsing_date(birth_date)
         if delta_year(birth_date) <= 12:
-            return {"feedback": "registration fail: not archived minimum age"}
+            return {"feedback": "registration failed: not archived minimum age"}
     except ValueError:
-        return {"feedback": "registration fail: invalid birth date format"}
-
-    if db.session.query(Citizen).filter(
-            Citizen.citizen_id == citizen_id).count() > 0:
-        return {"feedback": "registration fail: this person already registed"}
+        return {"feedback": "registration failed: invalid birth date format"}
 
     data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
     db.session.add(data)
@@ -205,14 +215,16 @@ def reservation():
     vaccine_name = request.values['vaccine_name']
 
     if not (citizen_id and site_name and vaccine_name):
-        return {"feedback": "reservation fail: missing some attribute"}
+        return {"feedback": "reservation failed: missing some attribute"}
 
-    if not is_citizen_ID(citizen_id):
-        return {"feedback": "reservation fail: invalid citizen ID"}
+    if not is_citizen_id(citizen_id):
+        return {"feedback": "reservation failed: invalid citizen ID"}
 
-    if db.session.query(Citizen).filter(
-            Citizen.citizen_id == citizen_id).count() <= 0:
-        return {"feedback": "reservation fail: citizen ID is not registered"}
+    if not is_registered(citizen_id):
+        return {"feedback": "reservation failed: citizen ID is not registered"}
+    
+    if is_reserved(citizen_id):
+        return {"feedback": "reservation failed: a citizen could make a reservation at a time"}
 
     data = Reservation(int(citizen_id), site_name, vaccine_name)
     db.session.add(data)
@@ -230,17 +242,20 @@ def cancel_reservation():
     if not (citizen_id):
         return {"feedback": "cancel reservation failed: no citizen id is given"}
 
-    if not is_citizen_ID(citizen_id):
+    if not is_citizen_id(citizen_id):
         return {"feedback": "cancel reservation failed: invalid citizen ID"}
+    
+    if not is_registered(citizen_id):
+        return {"feedback": "reservation failed: citizen ID is not registered"}
 
-    data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id)
-    if data.count() == 0:
+    if not is_reserved(citizen_id):
         return {
             "feedback":
             "cancel reservation failed: there is no reservation for this citizen id"
         }
 
-    for elem in data:
+    reservation = get_unchecked_reservations(citizen_id).first()
+    for elem in reservation:
         db.session.delete(elem)
 
     db.session.commit()
@@ -262,14 +277,18 @@ def update_queue():
         if queue <= datetime.now():
             return {
                 "feedback":
-                "report fail: can only reserve vaccine in the future"
+                "report failed: can only reserve vaccine in the future"
             }
     except ValueError:
-        return {"feedback": "report fail: invalid queue datetime format"}
+        return {"feedback": "report failed: invalid queue datetime format"}
 
-    reservation = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
-    reservation.queue = queue
-    db.session.commit()
+    try:
+        reservation = get_unchecked_reservations(citizen_id).first()
+        reservation.queue = queue
+        db.session.commit()
+    except:
+        return {"feedback": "report failed: couldn't find valid reservation"}
+        
     return {"feedback": "report success!"}
 
 
@@ -283,17 +302,41 @@ def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
     
+    if not (citizen_id and vaccine_name):
+        return {"feedback": "report failed: missing some attribute"}
+
+    if not is_citizen_id(citizen_id):
+        return {"feedback": "report failed: invalid citizen ID"}
+    
+    if not is_registered(citizen_id):
+        return {"feedback": "report failed: citizen ID is not registered"}
+
+    # Walk-In?
+    # if not is_reserved(citizen_id):
+    #     return {
+    #         "feedback":
+    #         "report failed: there is no reservation for this citizen id"
+    #     }
+    
+    if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
+        return {"feedback": "report failed: invalid vaccine name"}
+    
     try:
         citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
         citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
-        
-        reservation_data = db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).first()
-        reservation_data.checked = True
-
         db.session.commit()
     except:
         db.session.rollback()
-        return {"feedbacks": "report fail"}
+        return {"feedbacks": "report failed"}    
+    
+    # Walk-In?
+    try:
+        reservation_data = get_unchecked_reservations(citizen_id).filter(Reservation.vaccine_name == vaccine_name).first()
+        reservation_data.checked = True
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedbacks": "report failed"} 
     
     return {"feedbacks": "report success!"}
 
