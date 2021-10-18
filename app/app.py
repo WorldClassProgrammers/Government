@@ -11,6 +11,39 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
+VACCINE_PATTERN = [
+    ["Pfizer", "Pfizer"], 
+    ["Astra", "Astra"], 
+    ["Sinofarm", "Sinofarm"],
+    ["Sinovac", "Sinovac"],
+    ["Sinovac", "Astra"],
+    ["Astra", "Pfizer"],
+    ["Pfizer", "Astra"],
+    ["Sinovac", "Pfizer"], 
+    ["Sinofarm", "Pfizer"],
+    ["Sinovac", "Sinovac", "Astra"], 
+    ["Sinovac", "Sinovac", "Pfizer"],
+    ["Sinovac", "Sinofarm", "Astra"], 
+    ["Sinovac", "Sinofarm", "Pfizer"],
+    ["Astra", "Astra", "Pfizer"]
+]
+
+
+def get_available_vaccine(vaccine_taken: list):    
+    available_pattern = []
+    for pattern in VACCINE_PATTERN:
+        if pattern[:len(vaccine_taken)] == vaccine_taken:
+            available_pattern.append(pattern[len(vaccine_taken):])
+    
+    available_vaccine = set()
+    for pattern in available_pattern:
+        for vaccine in pattern:
+            available_vaccine.add(vaccine)
+            
+    return sorted(list(available_vaccine))
+
+
 def parsing_date(birth_date: str):
     """
     Reparse birthdate into datetime format.
@@ -187,9 +220,15 @@ def registration():
     except ValueError:
         return {"feedback": "registration failed: invalid birth date format"}
 
-    data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
-    db.session.add(data)
-    db.session.commit()
+    
+    try:
+        data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
+        db.session.add(data)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedback": "registration failed: something go wrong, please contact admin"}
+    
     return {"feedback": "registration success!"}
 
 
@@ -227,10 +266,30 @@ def reservation():
         feedback = "reservation failed: a citizen could make a reservation at a time"
         json_data["feedback"] = feedback
         return jsonify(json_data)
-
-    data = Reservation(int(citizen_id), site_name, vaccine_name)
-    db.session.add(data)
-    db.session.commit()
+    
+    if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
+        return {"feedback": "report failed: invalid vaccine name"}
+    
+    citizen = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+    vaccines = get_available_vaccine(citizen.vaccine_taken)
+    if not vaccine_name in vaccines:
+        if len(vaccines) == 0:
+            feedback = f"reservation failed: you are finished all vaccinations"
+        elif len(vaccines) == 1:
+            feedback = f"reservation failed: your next vaccine can be {vaccines} only"
+        else:
+            feedback = f"reservation failed: your vailable vaccine are {vaccines}"
+        json_data["feedback"] = feedback
+        return jsonify(json_data)
+    
+    try:
+        data = Reservation(int(citizen_id), site_name, vaccine_name)
+        db.session.add(data)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedback": "reservation failed: something go wrong, please contact admin"}
+    
     return {"feedback": "reservation success!"}
 
 
@@ -253,14 +312,17 @@ def cancel_reservation():
     if not is_reserved(citizen_id):
         return {
             "feedback":
-            "cancel reservation failed: there is no reservation for this citizen id"
+            "cancel reservation failed: there is no reservation for this citizen"
         }
 
-    reservation = get_unchecked_reservations(citizen_id).first()
-    for elem in reservation:
-        db.session.delete(elem)
-
-    db.session.commit()
+    try:
+        reservation = get_unchecked_reservations(citizen_id).first()
+        db.session.delete(reservation)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"feedback": "cancel reservation failed: couldn't find valid reservation"}
+    
     return {"feedback": "cancel reservation successfully"}
 
 
@@ -289,6 +351,7 @@ def update_queue():
         reservation.queue = queue
         db.session.commit()
     except:
+        db.session.rollback()
         return {"feedback": "report failed: couldn't find valid reservation"}
 
     return {"feedback": "report success!"}
@@ -303,8 +366,9 @@ def report_taken_usage():
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
+    option = request.values['option']
 
-    if not (citizen_id and vaccine_name):
+    if not (citizen_id and vaccine_name and option):
         return {"feedback": "report failed: missing some attribute"}
 
     if not is_citizen_id(citizen_id):
@@ -313,32 +377,51 @@ def update_citizen_db():
     if not is_registered(citizen_id):
         return {"feedback": "report failed: citizen ID is not registered"}
 
-    # Walk-In?
-    # if not is_reserved(citizen_id):
-    #     return {
-    #         "feedback":
-    #         "report failed: there is no reservation for this citizen id"
-    #     }
-
     if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
         return {"feedback": "report failed: invalid vaccine name"}
+    
+    if (option == "walk-in"):
+        if is_reserved(citizen_id):
+            return {
+                "feedback":
+                "report failed: before walk-in, citizen need to cancel other reservation"
+            }
 
-    try:
-        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
-        db.session.commit()
-    except:
-        db.session.rollback()
-        return {"feedbacks": "report failed"}
+        try:
+            citizen = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+            vaccines = get_available_vaccine(citizen.vaccine_taken)
+            if not vaccine_name in vaccines:
+                if len(vaccines) == 0:
+                    feedback = f"report failed: you are finished all vaccinations"
+                elif len(vaccines) == 1:
+                    feedback = f"report failed: your next vaccine can be {vaccines} only"
+                else:
+                    feedback = f"report failed: your vailable vaccine are {vaccines}"
+                return {"feedback": feedback}
+            
+            citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
+            db.session.commit()
+        except:
+            db.session.rollback()
+            return {"feedbacks": "report failed: something go wrong, please contact admin"}
+    else:
+        if not is_reserved(citizen_id):
+            return {
+                "feedback":
+                "report failed: there is no reservation for this citizen"
+            }
 
-    # Walk-In?
-    try:
-        reservation_data = get_unchecked_reservations(citizen_id).filter(Reservation.vaccine_name == vaccine_name).first()
-        reservation_data.checked = True
-        db.session.commit()
-    except:
-        db.session.rollback()
-        return {"feedbacks": "report failed"}
+        try:
+            citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+            citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+            
+            reservation_data = get_unchecked_reservations(citizen_id).filter(Reservation.vaccine_name == vaccine_name).first()
+            reservation_data.checked = True
+            
+            db.session.commit()
+        except:
+            db.session.rollback()
+            return {"feedbacks": "report failed: vaccine_name not match reservation"}
 
     return {"feedbacks": "report success!"}
 
