@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
@@ -14,13 +14,10 @@ db = SQLAlchemy(app)
 def parsing_date(birth_date: str):
     """
     Reparse birthdate into datetime format.
-
     Args:
         birth_date (str): birthdate of citizen
-
     Raises:
         ValueError: invalid date format
-
     Returns:
         struct_time: Birthdate in datetime format.
     """
@@ -35,10 +32,8 @@ def parsing_date(birth_date: str):
 def delta_year(birth_date: datetime):
     """
     Find the age from birthdate.
-
     Args:
         birth_date (datetime): birthdate in datetime format
-
     Returns:
         int: Age from current year minus birth year.
     """
@@ -64,7 +59,6 @@ def get_unchecked_reservations(citizen_id):
 class Citizen(db.Model):
     """
     A class to represent a citizen.
-
     Attributes:
         id (int): citizen ID
         name (str): name
@@ -111,7 +105,6 @@ class Citizen(db.Model):
 class Reservation(db.Model):
     """
     A class to represent a reservation data.
-
     Attributes:
         id (int): reservation ID
         citizen_id (int): citizen ID
@@ -177,16 +170,16 @@ def registration():
     birth_date = request.values['birth_date']
     occupation = request.values['occupation']
     address = request.values['address']
-    
+
     if not (citizen_id and name and surname and birth_date and occupation and address):
         return {"feedback": "registration failed: missing some attribute"}
 
     if not is_citizen_id(citizen_id):
         return {"feedback": "registration failed: invalid citizen ID"}
-    
+
     if is_registered(citizen_id):
         return {"feedback": "registration failed: this person already registed"}
-    
+
     try:
         birth_date = parsing_date(birth_date)
         if delta_year(birth_date) <= 12:
@@ -213,18 +206,27 @@ def reservation():
     citizen_id = request.values['citizen_id']
     site_name = request.values['site_name']
     vaccine_name = request.values['vaccine_name']
+    json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name, "timetsamp": datetime.now(), "queue": None, "checked": False}
 
     if not (citizen_id and site_name and vaccine_name):
-        return {"feedback": "reservation failed: missing some attribute"}
+        feedback = "reservation failed: missing some attribute"
+        json_data["feedback"] = feedback
+        return jsonify(json_data)
 
     if not is_citizen_id(citizen_id):
-        return {"feedback": "reservation failed: invalid citizen ID"}
+        feedback = "reservation failed: invalid citizen ID"
+        json_data["feedback"] = feedback
+        return jsonify(json_data)
 
     if not is_registered(citizen_id):
-        return {"feedback": "reservation failed: citizen ID is not registered"}
-    
+        feedback = "reservation failed: citizen ID is not registered"
+        json_data["feedback"] = feedback
+        return jsonify(json_data)
+
     if is_reserved(citizen_id):
-        return {"feedback": "reservation failed: a citizen could make a reservation at a time"}
+        feedback = "reservation failed: a citizen could make a reservation at a time"
+        json_data["feedback"] = feedback
+        return jsonify(json_data)
 
     data = Reservation(int(citizen_id), site_name, vaccine_name)
     db.session.add(data)
@@ -238,13 +240,13 @@ def cancel_reservation():
     Cancel reservation and remove it from the database.
     """
     citizen_id = request.values['citizen_id']
-    
+
     if not (citizen_id):
         return {"feedback": "cancel reservation failed: no citizen id is given"}
 
     if not is_citizen_id(citizen_id):
         return {"feedback": "cancel reservation failed: invalid citizen ID"}
-    
+
     if not is_registered(citizen_id):
         return {"feedback": "reservation failed: citizen ID is not registered"}
 
@@ -271,7 +273,7 @@ def queue_report_usage():
 def update_queue():
     citizen_id = request.values['citizen_id']
     queue = request.values['queue']
-    
+
     try:
         queue = datetime.strptime(queue, "%Y-%m-%d %H:%M:%S.%f")
         if queue <= datetime.now():
@@ -288,7 +290,7 @@ def update_queue():
         db.session.commit()
     except:
         return {"feedback": "report failed: couldn't find valid reservation"}
-        
+
     return {"feedback": "report success!"}
 
 
@@ -301,13 +303,13 @@ def report_taken_usage():
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
-    
+
     if not (citizen_id and vaccine_name):
         return {"feedback": "report failed: missing some attribute"}
 
     if not is_citizen_id(citizen_id):
         return {"feedback": "report failed: invalid citizen ID"}
-    
+
     if not is_registered(citizen_id):
         return {"feedback": "report failed: citizen ID is not registered"}
 
@@ -317,18 +319,18 @@ def update_citizen_db():
     #         "feedback":
     #         "report failed: there is no reservation for this citizen id"
     #     }
-    
+
     if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
         return {"feedback": "report failed: invalid vaccine name"}
-    
+
     try:
         citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
         citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
         db.session.commit()
     except:
         db.session.rollback()
-        return {"feedbacks": "report failed"}    
-    
+        return {"feedbacks": "report failed"}
+
     # Walk-In?
     try:
         reservation_data = get_unchecked_reservations(citizen_id).filter(Reservation.vaccine_name == vaccine_name).first()
@@ -336,8 +338,8 @@ def update_citizen_db():
         db.session.commit()
     except:
         db.session.rollback()
-        return {"feedbacks": "report failed"} 
-    
+        return {"feedbacks": "report failed"}
+
     return {"feedbacks": "report success!"}
 
 
