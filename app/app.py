@@ -26,20 +26,16 @@ VACCINE_PATTERN = [
     ["Sinovac", "Sinovac", "Pfizer"],
     ["Sinovac", "Sinofarm", "Astra"], 
     ["Sinovac", "Sinofarm", "Pfizer"],
-    ["Astra", "Astra", "Pfizer"]
+    ["Astra", "Astra", "Pfizer"],
 ]
 
 
 def get_available_vaccine(vaccine_taken: list):    
-    available_pattern = []
-    for pattern in VACCINE_PATTERN:
-        if pattern[:len(vaccine_taken)] == vaccine_taken:
-            available_pattern.append(pattern[len(vaccine_taken):])
-    
     available_vaccine = set()
-    for pattern in available_pattern:
-        for vaccine in pattern:
-            available_vaccine.add(vaccine)
+    for pattern in VACCINE_PATTERN:
+        length = len(vaccine_taken)
+        if length < len(pattern) and pattern[:length] == vaccine_taken:
+            available_vaccine.add(pattern[length])
             
     return sorted(list(available_vaccine))
 
@@ -274,11 +270,11 @@ def reservation():
     vaccines = get_available_vaccine(citizen.vaccine_taken)
     if not vaccine_name in vaccines:
         if len(vaccines) == 0:
-            feedback = f"reservation failed: you are finished all vaccinations"
+            feedback = f"reservation failed: you finished all vaccinations"
         elif len(vaccines) == 1:
             feedback = f"reservation failed: your next vaccine can be {vaccines} only"
         else:
-            feedback = f"reservation failed: your vailable vaccine are {vaccines}"
+            feedback = f"reservation failed: your available vaccines are only {vaccines}"
         json_data["feedback"] = feedback
         return jsonify(json_data)
     
@@ -288,7 +284,7 @@ def reservation():
         db.session.commit()
     except:
         db.session.rollback()
-        return {"feedback": "reservation failed: something go wrong, please contact admin"}
+        return {"feedback": "reservation failed: something went wrong, please contact the admin"}
     
     return {"feedback": "reservation success!"}
 
