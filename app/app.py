@@ -85,6 +85,30 @@ def get_unchecked_reservations(citizen_id):
     return db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).filter(Reservation.checked == False)
 
 
+def get_citizen(citizen_id):
+    return db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+
+
+def validate_vaccine(citizen, vaccine_name, json_data):
+    vaccines = get_available_vaccine(citizen.vaccine_taken)
+    print("Going to check vaccine")
+    if not vaccine_name in vaccines:
+        if len(vaccines) == 0:
+            feedback = f"reservation failed: you finished all vaccinations"
+        elif len(vaccines) == 1:
+            feedback = f"reservation failed: your next vaccine can be {vaccines} only"
+        else:
+            feedback = f"reservation failed: your available vaccines are only {vaccines}"
+        
+        if json_data == None:
+            return False, {"feedback": feedback}
+
+        json_data["feedback"] = feedback
+        return False, jsonify(json_data)
+
+    return True, {}
+
+
 class Citizen(db.Model):
     """
     A class to represent a citizen.
@@ -259,25 +283,19 @@ def reservation():
         return jsonify(json_data)
 
     if is_reserved(citizen_id):
-        feedback = "reservation failed: a citizen could make a reservation at a time"
+        feedback = "reservation failed: there is already a reservation for this citizen"
         json_data["feedback"] = feedback
         return jsonify(json_data)
     
     if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
         return {"feedback": "report failed: invalid vaccine name"}
     
-    citizen = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-    vaccines = get_available_vaccine(citizen.vaccine_taken)
-    if not vaccine_name in vaccines:
-        if len(vaccines) == 0:
-            feedback = f"reservation failed: you finished all vaccinations"
-        elif len(vaccines) == 1:
-            feedback = f"reservation failed: your next vaccine can be {vaccines} only"
-        else:
-            feedback = f"reservation failed: your available vaccines are only {vaccines}"
-        json_data["feedback"] = feedback
-        return jsonify(json_data)
+    citizen = get_citizen(citizen_id)
+    is_valid, json_data = validate_vaccine(citizen, vaccine_name, json_data)
     
+    if not is_valid:
+        return json_data
+
     try:
         data = Reservation(int(citizen_id), site_name, vaccine_name)
         db.session.add(data)
@@ -384,16 +402,11 @@ def update_citizen_db():
             }
 
         try:
-            citizen = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-            vaccines = get_available_vaccine(citizen.vaccine_taken)
-            if not vaccine_name in vaccines:
-                if len(vaccines) == 0:
-                    feedback = f"report failed: you are finished all vaccinations"
-                elif len(vaccines) == 1:
-                    feedback = f"report failed: your next vaccine can be {vaccines} only"
-                else:
-                    feedback = f"report failed: your vailable vaccine are {vaccines}"
-                return {"feedback": feedback}
+            citizen = get_citizen(citizen_id)
+            is_valid, feedback = validate_vaccine(citizen, vaccine_name, None)
+            
+            if not is_valid:
+                return feedback
             
             citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
             db.session.commit()
