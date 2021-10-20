@@ -494,7 +494,15 @@ def reset_citizen_db():
     Reset citizen database.
     """
     try:
-        deleted_time = db.session.query(Citizen).delete()
+        citizen_id = request.values['citizen_id']
+        db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).delete()
+        db.session.commit()
+        return redirect(url_for('citizen'))
+    except:
+        db.session.rollback()
+        
+    try:
+        db.session.query(Citizen).delete()
         db.session.commit()
     except:
         db.session.rollback()
