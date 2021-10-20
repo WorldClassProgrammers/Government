@@ -412,7 +412,7 @@ def update_citizen_db():
             db.session.commit()
         except:
             db.session.rollback()
-            return {"feedbacks": "report failed: something go wrong, please contact admin"}
+            return {"feedback": "report failed: something go wrong, please contact admin"}
     else:
         if not is_reserved(citizen_id):
             return {
@@ -430,9 +430,9 @@ def update_citizen_db():
             db.session.commit()
         except:
             db.session.rollback()
-            return {"feedbacks": "report failed: vaccine_name not match reservation"}
+            return {"feedback": "report failed: vaccine_name not match reservation"}
 
-    return {"feedbacks": "report success!"}
+    return {"feedback": "report success!"}
 
 
 @app.route('/reservation_database', methods=['GET'])
@@ -496,6 +496,7 @@ def reset_citizen_db():
     try:
         citizen_id = request.values['citizen_id']
         db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).delete()
+        db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).delete()
         db.session.commit()
         return redirect(url_for('citizen'))
     except:
@@ -503,6 +504,7 @@ def reset_citizen_db():
         
     try:
         db.session.query(Citizen).delete()
+        db.session.query(Reservation).delete()
         db.session.commit()
     except:
         db.session.rollback()
