@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
+from flasgger import Swagger
+from flasgger.utils import swag_from
 import os
 
 app = Flask(__name__)
@@ -10,6 +12,35 @@ app.debug = os.getenv("DEBUG")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
+
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "title": "WCG-api",
+            "description": "This is api documentation for World Class Government's government module",
+            "version": "1.0.0",
+            "externalDocs": {
+                "description": "See our github",
+                "url": "https://github.com/WorldClassProgrammers/Government-APIs",
+            },
+            "servers": {
+                "url": "https://wcg-apis.herokuapp.com"
+            },
+            "endpoint": "api-doc",
+            "route": "/api",
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/api-doc/",
+}
+
+swagger = Swagger(app, config=swagger_config)
 
 
 VACCINE_PATTERN = [
