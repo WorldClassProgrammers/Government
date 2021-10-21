@@ -1,0 +1,34 @@
+tags:
+  - name: ReportTaken
+summary: Report vaccine which is currently taken.
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: query
+    description: "citizen id must be a uniqe combination of 13 digits number"
+    type: "string"
+    required: true
+  - name: "vaccine_name"
+    in: query
+    description: "need to be one of available vaccine [Pfizer, Astra, Sinofarm, Sinovac]\nfor citizen with reservation vaccine need to match the reservation"
+    type: "string"
+    required: true
+  - name: "option"
+    in: query
+    description: "can either be walk-in or reserve"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: successful registration
+    schema:
+      type: object
+      properties:
+        feedback: 
+          type: "string"
+          example: "report success!"
+  400:
+    description: Bad request

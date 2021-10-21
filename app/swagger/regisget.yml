@@ -1,0 +1,30 @@
+tags:
+  - name: Register
+summary: Get all citizen's information as json
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: Return citizen's information as json
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          citizen_id:
+            type: string
+          name:
+            type: string
+          surname:
+            type: string
+          birth_date:
+            type: string
+            example: "DD/MM/YYYY"
+          occupation:
+            type: string
+          address:
+            type: string
+  400:
+    description: Bad request

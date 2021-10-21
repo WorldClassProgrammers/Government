@@ -1,0 +1,12 @@
+tags:
+  - name: Register
+summary: Send html template that display citizen's information
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: Return html template display all citizen
+  400:
+    description: Bad request

@@ -4,6 +4,7 @@ from string import Template
 from datetime import datetime
 from flasgger import Swagger
 from flasgger.utils import swag_from
+from flask_marshmallow import Marshmallow
 import os
 
 app = Flask(__name__)
@@ -12,6 +13,7 @@ app.debug = os.getenv("DEBUG")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
 
@@ -139,7 +141,6 @@ def validate_vaccine(citizen, vaccine_name, json_data):
 
     return True, {}
 
-
 class Citizen(db.Model):
     """
     A class to represent a citizen.
@@ -226,6 +227,15 @@ class Reservation(db.Model):
         </tr>
         """
 
+class CitizenSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Citizen
+        load_instance = True
+
+class ReservationSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Reservation
+        load_instance = True
 
 @app.route('/')
 def index():
@@ -236,14 +246,25 @@ def index():
 
 
 @app.route('/registration', methods=['GET'])
+@swag_from("swagger/regisget.yml")
+def registration_as_json():
+    """
+    Return all citizen's information as json
+    """
+    citizen_schema = CitizenSchema(many=True)
+    data = citizen_schema.dump(db.session.query(Citizen).all())
+    return jsonify(data)
+    # return render_template('registration.html')
+
+@app.route('/registration_usage', methods=['GET'])
 def registration_usage():
     """
-    Render template for registration page.
+    Render html template for registration usage.
     """
     return render_template('registration.html')
 
-
 @app.route('/registration', methods=['POST'])
+@swag_from("swagger/regispost.yml")
 def registration():
     """
     Accept and validate registration information.
@@ -284,11 +305,19 @@ def registration():
 
 
 @app.route('/reservation', methods=['GET'])
+@swag_from("swagger/reserveget.yml")
+def reservation_as_json():
+    reservation_schema = ReservationSchema(many=True)
+    data = reservation_schema.dump(db.session.query(Reservation).all())
+    return jsonify(data)
+    # return render_template('reservation.html')
+
+@app.route('/reservation_usage', methods=['GET'])
 def reservation_usage():
     return render_template('reservation.html')
 
-
 @app.route('/reservation', methods=['POST'])
+@swag_from("swagger/reservepost.yml")
 def reservation():
     """
     Add reservation data to the database
@@ -339,6 +368,7 @@ def reservation():
 
 
 @app.route('/reservation', methods=['DELETE'])
+@swag_from("swagger/reservedel.yml")
 def cancel_reservation():
     """
     Cancel reservation and remove it from the database.
@@ -377,6 +407,7 @@ def queue_report_usage():
 
 
 @app.route('/queue_report', methods=['POST'])
+@swag_from("swagger/queuepost.yml")
 def update_queue():
     citizen_id = request.values['citizen_id']
     queue = request.values['queue']
@@ -408,6 +439,7 @@ def report_taken_usage():
 
 
 @app.route('/report_taken', methods=['POST'])
+@swag_from("swagger/reportpost.yml")
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
@@ -493,6 +525,7 @@ def reservation_database():
 
 
 @app.route('/citizen', methods=['GET'])
+# @swag_from("swagger/citizenget.yml")
 def citizen():
     """
     Render html template that display citizen's information.
@@ -520,6 +553,7 @@ def citizen():
 
 
 @app.route('/citizen', methods=['DELETE'])
+@swag_from("swagger/citizendel.yml")
 def reset_citizen_db():
     """
     Reset citizen database.

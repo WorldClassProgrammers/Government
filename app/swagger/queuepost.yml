@@ -1,0 +1,29 @@
+tags:
+  - name: QueueReport
+summary: Send report of vaccination queue
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: query
+    description: "citizen id must be a unique combination of 13 digits number and registerd"
+    type: "string"
+    required: true
+  - name: "queue"
+    in: query
+    description: "queue need to be in format ['%Y-%m-%d %H:%M:%S.%f']"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: successful report
+    schema:
+      type: object
+      properties:
+        feedback: 
+          type: "string"
+          example: "report success!"
+  400:
+    description: Bad request
