@@ -465,7 +465,6 @@ def get_reservation():
     """
     Send reservation information to service site.
     """
-    citizens = []
     reservations = []
     for reservation in db.session.query(Reservation).all():
         citizen = db.session.query(Citizen).filter(reservation.citizen_id == Citizen.citizen_id).first()
