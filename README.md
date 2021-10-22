@@ -77,6 +77,8 @@ Run [app.py](app/app.py)
 $ pipenv shell
 # install pip to pipFile
 $ pipenv install <PACKAGE_NAME>
+# update Pipfile.lock
+$ pipenv lock
 
 # create requirements.txt
 $ pip freeze > requirements.txt
