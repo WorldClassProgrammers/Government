@@ -1,0 +1,24 @@
+tags:
+  - name: Reservation
+summary: Cancel reservation and remove it from the database.
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: query
+    description: "citizen id must be a unique combination of 13 digits number and has a reservation in the system"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: successful reservation cancellation
+    schema:
+      type: object
+      properties:
+        feedback: 
+          type: "string"
+          example: "cancel reservation successfully"
+  400:
+    description: Bad request

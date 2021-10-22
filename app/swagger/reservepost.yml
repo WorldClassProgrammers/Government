@@ -1,0 +1,34 @@
+tags:
+  - name: Reservation
+summary: Add reservation data to the database
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: query
+    description: "citizen id must be a unique combination of 13 digits number and registered"
+    type: "string"
+    required: true
+  - name: "site_name"
+    in: query
+    description: "vaccination site name"
+    type: "string"
+    required: true
+  - name: "vaccine_name"
+    in: query
+    description: "vaccine name needs to be one of available vaccine [Pfizer, Astra, Sinofarm, or Sinovac] and follow vaccination orders"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: successful reservation
+    schema:
+      type: object
+      properties:
+        feedback: 
+          type: "string"
+          example: "reservation success!"
+  400:
+    description: Bad request

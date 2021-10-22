@@ -1,0 +1,26 @@
+tags:
+  - name: Reservation
+summary: Return JSON of reservation database
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: reservation information
+    schema:
+      type: array
+      items:
+          type: object
+          properties:
+            citizen_id:
+              type: string
+              description: The citizen ID.
+            site_name:
+              type: string
+              description: The reservation site name.
+            vaccine_name:
+              type: string
+              description: The vaccine name.
+  400:
+    description: Bad request

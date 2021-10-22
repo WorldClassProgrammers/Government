@@ -1,0 +1,49 @@
+tags:
+  - name: Register
+summary: Accept and validate registration information.
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: query
+    description: "citizen id must be a uniqe combination of 13 digits number"
+    type: "string"
+    required: true
+  - name: "name"
+    in: query
+    description: "first name of citizen"
+    type: "string"
+    required: true
+  - name: "surname"
+    in: query
+    description: "surname of citizen"
+    type: "string"
+    required: true
+  - name: "birth_date"
+    in: query
+    description: "birth date need to be in one of the available formats ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']"
+    type: "string"
+    required: true
+  - name: "occupation"
+    in: query
+    description: "occupation of citizen"
+    type: "string"
+    required: true
+  - name: "address"
+    in: query
+    description: "current address of citizen"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: successful registration
+    schema:
+      type: object
+      properties:
+        feedback: 
+          type: "string"
+          example: "registration success!"
+  400:
+    description: Bad request
