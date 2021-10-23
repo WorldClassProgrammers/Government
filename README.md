@@ -2,6 +2,8 @@
 
 <https://wcg-apis.herokuapp.com/>
 
+api document: <https://wcg-apis.herokuapp.com/api-doc/>
+
 ## Installation
 
 ### Required Dependency
