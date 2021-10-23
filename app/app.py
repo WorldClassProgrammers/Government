@@ -188,7 +188,7 @@ class Citizen(db.Model):
         self.occupation = occupation
         self.address = address
         self.vaccine_taken = []
-        logger.info('Created Citizen: {} - {} {} - birth date: {} occupation: {} address: {} vaccine taken: {}'
+        logger.info('created Citizen: {} - {} {} - birth date: {} occupation: {} address: {} vaccine taken: {}'
                     .format(self.citizen_id, self.name, self.surname, self.birth_date, self.occupation, self.address,
                             self.vaccine_taken))
 
@@ -232,7 +232,7 @@ class Reservation(db.Model):
         self.site_name = site_name
         self.vaccine_name = vaccine_name
         self.timestamp = datetime.now()
-        logger.info('Created Reservation: {} - site name: {} vaccine name: {} time: {} queue: {} checked: {}'
+        logger.info('created Reservation: {} - site name: {} vaccine name: {} time: {} queue: {} checked: {}'
                     .format(self.citizen_id, self.site_name, self.vaccine_name, self.timestamp, self.queue,
                             self.checked))
 
@@ -278,7 +278,7 @@ def registration_as_json():
     """
     citizen_schema = CitizenSchema(many=True)
     data = citizen_schema.dump(db.session.query(Citizen).all())
-    logger.info("Get reservation data")
+    logger.info("get reservation data")
     return jsonify(data)
     # return render_template('registration.html')
 
@@ -445,7 +445,7 @@ def cancel_reservation():
         db.session.rollback()
         logger.error("cancel reservation failed: couldn't find valid reservation")
         return {"feedback": "cancel reservation failed: couldn't find valid reservation"}
-    logger.info("{} - Cancel reservation".format(citizen_id))
+    logger.info("{} - cancel reservation".format(citizen_id))
     return {"feedback": "cancel reservation successfully"}
 
 
@@ -480,7 +480,7 @@ def update_queue():
         db.session.rollback()
         logger.error("report failed: couldn't find valid reservation")
         return {"feedback": "report failed: couldn't find valid reservation"}
-    logger.info("{} - Updated queue - queue: {}".format(citizen_id, queue))
+    logger.info("{} - updated queue - queue: {}".format(citizen_id, queue))
     return {"feedback": "report success!"}
 
 
@@ -554,7 +554,7 @@ def update_citizen_db():
             db.session.rollback()
             logger.error("report failed: vaccine_name not match reservation")
             return {"feedback": "report failed: vaccine_name not match reservation"}
-    logger.info("{} - Updated citizen - vaccine name: {}".format(citizen_id, vaccine_name))
+    logger.info("{} - updated citizen - vaccine name: {}".format(citizen_id, vaccine_name))
     return {"feedback": "report success!"}
 
 
@@ -598,7 +598,7 @@ def get_reservation():
                             "vaccine_name": reservation.vaccine_name, "timestamp": reservation.timestamp,
                             "queue": reservation.queue, "checked": reservation.checked, "citizen_data": citizen_data}
         reservations.append(reservation_data)
-    logger.info("Service site get reservation data")
+    logger.info("service site get reservation data")
     return jsonify({"reservations": reservations})
 
 
@@ -645,7 +645,7 @@ def citizen_get_by_citizen_id(citizen_id):
         'address': person.address,
         'vaccine-taken': person.vaccine_taken,
     }
-    logger.info("{} - Get citizen data".format(citizen_id))
+    logger.info("{} - get citizen data".format(citizen_id))
     return jsonify(personal_data)
 
 
@@ -668,7 +668,7 @@ def reset_citizen_db():
     except:
         db.session.rollback()
     else:
-        logger.info("{} - Citizen has been deleted".format(citizen_id))
+        logger.info("{} - citizen has been deleted".format(citizen_id))
         return redirect(url_for('citizen'))
 
     try:
@@ -677,9 +677,9 @@ def reset_citizen_db():
         db.session.commit()
     except:
         db.session.rollback()
-        logger.error("Failed to delete citizen")
+        logger.error("failed to delete citizen")
     else:
-        logger.info("All citizens have been deleted")
+        logger.info("all citizens have been deleted")
         return redirect(url_for('citizen'))
 
 
