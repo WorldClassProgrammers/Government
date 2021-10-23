@@ -313,8 +313,8 @@ def registration():
         return {"feedback": "registration failed: invalid citizen ID"}
 
     if is_registered(citizen_id):
-        logger.error("registration failed: this person already registed")
-        return {"feedback": "registration failed: this person already registed"}
+        logger.error("registration failed: this person already registered")
+        return {"feedback": "registration failed: this person already registered"}
 
     try:
         birth_date = parsing_date(birth_date)
