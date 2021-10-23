@@ -333,8 +333,7 @@ def reservation():
     citizen_id = request.values['citizen_id']
     site_name = request.values['site_name']
     vaccine_name = request.values['vaccine_name']
-    json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name,
-                 "timetsamp": datetime.now(), "queue": None, "checked": False}
+    json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name, "timestamp": datetime.now(), "queue": None, "checked": False}
 
     if not (citizen_id and site_name and vaccine_name):
         feedback = "reservation failed: missing some attribute"
@@ -516,7 +515,6 @@ def reservation_database():
     tbody = ""
     for reservation in db.session.query(Reservation).all():
         tbody += str(reservation)
-
     html = render_template('database.html')
     html = Template(html).safe_substitute(
         title="Reservation",
@@ -532,6 +530,20 @@ def reservation_database():
             </tr>""",
         tbody=tbody)
     return html
+
+
+@app.route('/reservations', methods=['GET'])
+def get_reservation():
+    """
+    Send reservation information to service site.
+    """
+    reservations = []
+    for reservation in db.session.query(Reservation).all():
+        citizen = db.session.query(Citizen).filter(reservation.citizen_id == Citizen.citizen_id).first()
+        citizen_data = {"citizen_id": citizen.citizen_id, "name": citizen.name, "surname": citizen.surname, "birth_date":citizen.birth_date, "occupation": citizen.occupation, "address": citizen.address, "vaccine_taken": citizen.vaccine_taken}
+        reservation_data = {"citizen_id": reservation.citizen_id, "site_name": reservation.site_name, "vaccine_name": reservation.vaccine_name, "timestamp": reservation.timestamp, "queue": reservation.queue, "checked": reservation.checked, "citizen_data": citizen_data}
+        reservations.append(reservation_data)
+    return jsonify({"reservations":reservations})
 
 
 @app.route('/citizen', methods=['GET'])
