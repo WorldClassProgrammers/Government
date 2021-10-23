@@ -151,7 +151,6 @@ def validate_vaccine(citizen, vaccine_name, json_data):
 
         if json_data == None:
             return False, {"feedback": feedback}
-
         json_data["feedback"] = feedback
         return False, jsonify(json_data)
 
@@ -396,6 +395,7 @@ def reservation():
     is_valid, json_data = validate_vaccine(citizen, vaccine_name, json_data)
 
     if not is_valid:
+        logger.error("{} - {}".format(citizen_id, json_data['feedback']))
         return json_data
 
     try:
@@ -445,7 +445,7 @@ def cancel_reservation():
         db.session.rollback()
         logger.error("cancel reservation failed: couldn't find valid reservation")
         return {"feedback": "cancel reservation failed: couldn't find valid reservation"}
-    logger.info("Cancel reservation - {}".format(citizen_id))
+    logger.info("{} - Cancel reservation".format(citizen_id))
     return {"feedback": "cancel reservation successfully"}
 
 
@@ -480,7 +480,7 @@ def update_queue():
         db.session.rollback()
         logger.error("report failed: couldn't find valid reservation")
         return {"feedback": "report failed: couldn't find valid reservation"}
-    logger.info("Updated queue - {} - queue: {}".format(citizen_id, queue))
+    logger.info("{} - Updated queue - queue: {}".format(citizen_id, queue))
     return {"feedback": "report success!"}
 
 
@@ -525,7 +525,7 @@ def update_citizen_db():
             is_valid, feedback = validate_vaccine(citizen, vaccine_name, None)
 
             if not is_valid:
-                logger.error(feedback)
+                logger.error("{} - {}".format(citizen_id, feedback['feedback']))
                 return feedback
 
             citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
@@ -554,7 +554,7 @@ def update_citizen_db():
             db.session.rollback()
             logger.error("report failed: vaccine_name not match reservation")
             return {"feedback": "report failed: vaccine_name not match reservation"}
-    logger.info("Updated citizen - {} vaccine name: {}".format(citizen_id, vaccine_name))
+    logger.info("{} - Updated citizen - vaccine name: {}".format(citizen_id, vaccine_name))
     return {"feedback": "report success!"}
 
 
@@ -645,7 +645,7 @@ def citizen_get_by_citizen_id(citizen_id):
         'address': person.address,
         'vaccine-taken': person.vaccine_taken,
     }
-    logger.info("Get citizen data {}".format(citizen_id))
+    logger.info("{} - Get citizen data".format(citizen_id))
     return jsonify(personal_data)
 
 
@@ -668,7 +668,7 @@ def reset_citizen_db():
     except:
         db.session.rollback()
     else:
-        logger.info("Citizen - {} has been deleted".format(citizen_id))
+        logger.info("{} - Citizen has been deleted".format(citizen_id))
         return redirect(url_for('citizen'))
 
     try:
