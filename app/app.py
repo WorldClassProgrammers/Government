@@ -284,7 +284,6 @@ def registration_as_json():
     data = citizen_schema.dump(db.session.query(Citizen).all())
     logger.info("get reservation data")
     return jsonify(data)
-    # return render_template('registration.html')
 
 
 @app.route('/registration_usage', methods=['GET'])
@@ -350,7 +349,6 @@ def reservation_as_json():
     reservation_schema = ReservationSchema(many=True)
     data = reservation_schema.dump(db.session.query(Reservation).all())
     return jsonify(data)
-    # return render_template('reservation.html')
 
 
 @app.route('/reservation_usage', methods=['GET'])
@@ -415,9 +413,6 @@ def reservation():
         db.session.rollback()
         logger.error("reservation failed: something went wrong, please contact the admin")
         return {"feedback": "reservation failed: something went wrong, please contact the admin"}
-    
-    # TODO: send notify to service site
-    # check site_name == "OGYH Site"
 
     return {"feedback": "reservation success!"}
 
@@ -458,6 +453,7 @@ def cancel_reservation():
         db.session.rollback()
         logger.error("cancel reservation failed: couldn't find valid reservation")
         return {"feedback": "cancel reservation failed: couldn't find valid reservation"}
+    
     logger.info("{} - cancel reservation".format(citizen_id))
     return {"feedback": "cancel reservation successfully"}
 
@@ -495,6 +491,7 @@ def update_queue():
         db.session.rollback()
         logger.error("report failed: couldn't find valid reservation")
         return {"feedback": "report failed: couldn't find valid reservation"}
+    
     logger.info("{} - updated queue - queue: {}".format(citizen_id, queue))
     return {"feedback": "report success!"}
 
@@ -620,12 +617,12 @@ def get_reservation():
                             "vaccine_name": reservation.vaccine_name, "timestamp": reservation.timestamp,
                             "queue": reservation.queue, "checked": reservation.checked, "citizen_data": citizen_data}
         reservations.append(reservation_data)
+        
     logger.info("service site get reservation data")
     return jsonify({"reservations": reservations})
 
 
 @app.route('/citizen', methods=['GET'])
-# @swag_from("swagger/citizenget.yml")
 @cross_origin()
 def citizen():
     """
