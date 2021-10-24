@@ -64,17 +64,17 @@ swagger = Swagger(app, config=swagger_config)
 VACCINE_PATTERN = [
     ["Pfizer", "Pfizer"],
     ["Astra", "Astra"],
-    ["Sinofarm", "Sinofarm"],
+    ["Sinopharm", "Sinopharm"],
     ["Sinovac", "Sinovac"],
     ["Sinovac", "Astra"],
     ["Astra", "Pfizer"],
     ["Pfizer", "Astra"],
     ["Sinovac", "Pfizer"],
-    ["Sinofarm", "Pfizer"],
+    ["Sinopharm", "Pfizer"],
     ["Sinovac", "Sinovac", "Astra"],
     ["Sinovac", "Sinovac", "Pfizer"],
-    ["Sinovac", "Sinofarm", "Astra"],
-    ["Sinovac", "Sinofarm", "Pfizer"],
+    ["Sinovac", "Sinopharm", "Astra"],
+    ["Sinovac", "Sinopharm", "Pfizer"],
     ["Astra", "Astra", "Pfizer"],
 ]
 
@@ -274,8 +274,8 @@ def index():
 
 
 @app.route('/registration', methods=['GET'])
-@swag_from("swagger/regisget.yml")
 @cross_origin()
+@swag_from("swagger/regisget.yml")
 def registration_as_json():
     """
     Return all citizen's information as json
@@ -297,8 +297,8 @@ def registration_usage():
 
 
 @app.route('/registration', methods=['POST'])
-@swag_from("swagger/regispost.yml")
 @cross_origin()
+@swag_from("swagger/regispost.yml")
 def registration():
     """
     Accept and validate registration information.
@@ -344,8 +344,8 @@ def registration():
 
 
 @app.route('/reservation', methods=['GET'])
-@swag_from("swagger/reserveget.yml")
 @cross_origin()
+@swag_from("swagger/reserveget.yml")
 def reservation_as_json():
     reservation_schema = ReservationSchema(many=True)
     data = reservation_schema.dump(db.session.query(Reservation).all())
@@ -360,8 +360,8 @@ def reservation_usage():
 
 
 @app.route('/reservation', methods=['POST'])
-@swag_from("swagger/reservepost.yml")
 @cross_origin()
+@swag_from("swagger/reservepost.yml")
 def reservation():
     """
     Add reservation data to the database
@@ -396,7 +396,7 @@ def reservation():
         logger.error(feedback)
         return jsonify(json_data)
 
-    if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
+    if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
         logger.error("report failed: invalid vaccine name")
         return {"feedback": "report failed: invalid vaccine name"}
 
@@ -415,13 +415,16 @@ def reservation():
         db.session.rollback()
         logger.error("reservation failed: something went wrong, please contact the admin")
         return {"feedback": "reservation failed: something went wrong, please contact the admin"}
+    
+    # TODO: send notify to service site
+    # check site_name == "OGYH Site"
 
     return {"feedback": "reservation success!"}
 
 
 @app.route('/reservation', methods=['DELETE'])
-@swag_from("swagger/reservedel.yml")
 @cross_origin()
+@swag_from("swagger/reservedel.yml")
 def cancel_reservation():
     """
     Cancel reservation and remove it from the database.
@@ -466,8 +469,8 @@ def queue_report_usage():
 
 
 @app.route('/queue_report', methods=['POST'])
-@swag_from("swagger/queuepost.yml")
 @cross_origin()
+@swag_from("swagger/queuepost.yml")
 def update_queue():
     citizen_id = request.values['citizen_id']
     queue = request.values['queue']
@@ -503,12 +506,11 @@ def report_taken_usage():
 
 
 @app.route('/report_taken', methods=['POST'])
-@swag_from("swagger/reportpost.yml")
 @cross_origin()
+@swag_from("swagger/reportpost.yml")
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
-    option = request.values['option']
 
     if not (citizen_id and vaccine_name and option):
         logger.error("report failed: missing some attribute")
@@ -522,52 +524,56 @@ def update_citizen_db():
         logger.error("report failed: citizen ID is not registered")
         return {"feedback": "report failed: citizen ID is not registered"}
 
-    if not vaccine_name in ["Pfizer", "Astra", "Sinofarm", "Sinovac"]:
+    if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
         logger.error("report failed: invalid vaccine name")
         return {"feedback": "report failed: invalid vaccine name"}
+    
+    try:
+        option = request.values['option']
+        if (option == "walk-in"):
+            if is_reserved(citizen_id):
+                logger.error("report failed: before walk-in, citizen need to cancel other reservation")
+                return {
+                    "feedback":
+                        "report failed: before walk-in, citizen need to cancel other reservation"
+                }
 
-    if (option == "walk-in"):
-        if is_reserved(citizen_id):
-            logger.error("report failed: before walk-in, citizen need to cancel other reservation")
-            return {
-                "feedback":
-                    "report failed: before walk-in, citizen need to cancel other reservation"
-            }
+            try:
+                citizen = get_citizen(citizen_id)
+                is_valid, feedback = validate_vaccine(citizen, vaccine_name, None)
 
-        try:
-            citizen = get_citizen(citizen_id)
-            is_valid, feedback = validate_vaccine(citizen, vaccine_name, None)
+                if not is_valid:
+                    logger.error("{} - {}".format(citizen_id, feedback['feedback']))
+                    return feedback
 
-            if not is_valid:
-                logger.error("{} - {}".format(citizen_id, feedback['feedback']))
-                return feedback
-
-            citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
-            db.session.commit()
-        except:
-            db.session.rollback()
-            logger.error("report failed: something go wrong, please contact admin")
-            return {"feedback": "report failed: something go wrong, please contact admin"}
-    else:
-        if not is_reserved(citizen_id):
-            logger.error("report failed: there is no reservation for this citizen")
-            return {
-                "feedback":
-                    "report failed: there is no reservation for this citizen"
-            }
-
-        try:
-            citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-            citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
-            reservation_data = get_unchecked_reservations(citizen_id).filter(
-                Reservation.vaccine_name == vaccine_name).first()
-            reservation_data.checked = True
-
-            db.session.commit()
-        except:
-            db.session.rollback()
-            logger.error("report failed: vaccine_name not match reservation")
-            return {"feedback": "report failed: vaccine_name not match reservation"}
+                citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
+                db.session.commit()
+            except:
+                db.session.rollback()
+                logger.error("report failed: something go wrong, please contact admin")
+                return {"feedback": "report failed: something go wrong, please contact admin"}
+    except:
+        pass
+    
+    if not is_reserved(citizen_id):
+        logger.error("report failed: there is no reservation for this citizen")
+        return {
+            "feedback":
+                "report failed: there is no reservation for this citizen"
+        }
+        
+    try:
+        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+        reservation_data = get_unchecked_reservations(citizen_id).filter(
+            Reservation.vaccine_name == vaccine_name).first()
+        reservation_data.checked = True
+        db.session.commit()
+    except:
+        db.session.rollback()
+        logger.error("report failed: vaccine_name not match reservation")
+        return {"feedback": "report failed: vaccine_name not match reservation"}
+    
     logger.info("{} - updated citizen - vaccine name: {}".format(citizen_id, vaccine_name))
     return {"feedback": "report success!"}
 
@@ -668,14 +674,18 @@ def citizen_get_by_citizen_id(citizen_id):
 
 
 @app.route('/citizen', methods=['DELETE'])
-@swag_from("swagger/citizendel.yml")
 @cross_origin()
+@swag_from("swagger/citizendel.yml")
 def reset_citizen_db():
     """
-    Reset citizen database.
+    Reset citizen database or delete a citizen data.
     """
     try:
         citizen_id = request.values['citizen_id']
+        if not is_citizen_id(citizen_id):
+            logger.error("report failed: invalid citizen ID")
+            return {"feedback": "report failed: invalid citizen ID"}
+    
         if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first() is not None:
             db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).delete()
             db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).delete()
