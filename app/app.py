@@ -654,7 +654,9 @@ def citizen():
 @cross_origin()
 def citizen_get_by_citizen_id(citizen_id):
     if not is_citizen_id(citizen_id) or len(db.session.query(Citizen).filter_by(citizen_id=citizen_id).all()) != 1:
-        return redirect(url_for('citizen'))
+        feedback_message = "report failed: citizen not found"
+        logger.error(feedback_message)
+        return redirect(url_for('citizen'), 404)
     person = db.session.query(Citizen).filter_by(citizen_id=citizen_id)[0]
     personal_data = {
         'id': person.id,
