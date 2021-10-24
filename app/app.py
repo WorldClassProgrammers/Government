@@ -291,7 +291,7 @@ def registration_usage():
     return render_template('registration.html')
 
 
-@app.route('/registration', methods=['POST'])
+@app.route('/registration', methods=['POST', 'OPTIONS'])
 @swag_from("swagger/regispost.yml")
 def registration():
     """
@@ -351,7 +351,7 @@ def reservation_usage():
     return render_template('reservation.html')
 
 
-@app.route('/reservation', methods=['POST'])
+@app.route('/reservation', methods=['POST', 'OPTIONS'])
 @swag_from("swagger/reservepost.yml")
 def reservation():
     """
@@ -454,7 +454,7 @@ def queue_report_usage():
     return render_template('queue_report.html')
 
 
-@app.route('/queue_report', methods=['POST'])
+@app.route('/queue_report', methods=['POST', 'OPTIONS'])
 @swag_from("swagger/queuepost.yml")
 def update_queue():
     citizen_id = request.values['citizen_id']
@@ -489,7 +489,7 @@ def report_taken_usage():
     return render_template('report_taken.html')
 
 
-@app.route('/report_taken', methods=['POST'])
+@app.route('/report_taken', methods=['POST', 'OPTIONS'])
 @swag_from("swagger/reportpost.yml")
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
@@ -649,7 +649,7 @@ def citizen_get_by_citizen_id(citizen_id):
     return jsonify(personal_data)
 
 
-@app.route('/citizen', methods=['DELETE'])
+@app.route('/citizen', methods=['DELETE', 'OPTIONS'])
 @swag_from("swagger/citizendel.yml")
 def reset_citizen_db():
     """
