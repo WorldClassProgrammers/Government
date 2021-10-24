@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
 from datetime import datetime
@@ -9,6 +10,7 @@ import os
 import logging
 
 app = Flask(__name__)
+CORS(app)
 
 app.debug = os.getenv("DEBUG")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
@@ -263,6 +265,7 @@ class ReservationSchema(ma.SQLAlchemyAutoSchema):
 
 
 @app.route('/')
+@cross_origin()
 def index():
     """
     Render html template for index page.
@@ -272,6 +275,7 @@ def index():
 
 @app.route('/registration', methods=['GET'])
 @swag_from("swagger/regisget.yml")
+@cross_origin()
 def registration_as_json():
     """
     Return all citizen's information as json
@@ -284,6 +288,7 @@ def registration_as_json():
 
 
 @app.route('/registration_usage', methods=['GET'])
+@cross_origin()
 def registration_usage():
     """
     Render html template for registration usage.
@@ -291,8 +296,9 @@ def registration_usage():
     return render_template('registration.html')
 
 
-@app.route('/registration', methods=['POST', 'OPTIONS'])
+@app.route('/registration', methods=['POST'])
 @swag_from("swagger/regispost.yml")
+@cross_origin()
 def registration():
     """
     Accept and validate registration information.
@@ -339,6 +345,7 @@ def registration():
 
 @app.route('/reservation', methods=['GET'])
 @swag_from("swagger/reserveget.yml")
+@cross_origin()
 def reservation_as_json():
     reservation_schema = ReservationSchema(many=True)
     data = reservation_schema.dump(db.session.query(Reservation).all())
@@ -347,12 +354,14 @@ def reservation_as_json():
 
 
 @app.route('/reservation_usage', methods=['GET'])
+@cross_origin()
 def reservation_usage():
     return render_template('reservation.html')
 
 
-@app.route('/reservation', methods=['POST', 'OPTIONS'])
+@app.route('/reservation', methods=['POST'])
 @swag_from("swagger/reservepost.yml")
+@cross_origin()
 def reservation():
     """
     Add reservation data to the database
@@ -412,6 +421,7 @@ def reservation():
 
 @app.route('/reservation', methods=['DELETE'])
 @swag_from("swagger/reservedel.yml")
+@cross_origin()
 def cancel_reservation():
     """
     Cancel reservation and remove it from the database.
@@ -450,12 +460,14 @@ def cancel_reservation():
 
 
 @app.route('/queue_report', methods=['GET'])
+@cross_origin()
 def queue_report_usage():
     return render_template('queue_report.html')
 
 
-@app.route('/queue_report', methods=['POST', 'OPTIONS'])
+@app.route('/queue_report', methods=['POST'])
 @swag_from("swagger/queuepost.yml")
+@cross_origin()
 def update_queue():
     citizen_id = request.values['citizen_id']
     queue = request.values['queue']
@@ -485,12 +497,14 @@ def update_queue():
 
 
 @app.route('/report_taken', methods=['GET'])
+@cross_origin()
 def report_taken_usage():
     return render_template('report_taken.html')
 
 
-@app.route('/report_taken', methods=['POST', 'OPTIONS'])
+@app.route('/report_taken', methods=['POST'])
 @swag_from("swagger/reportpost.yml")
+@cross_origin()
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
@@ -559,6 +573,7 @@ def update_citizen_db():
 
 
 @app.route('/reservation_database', methods=['GET'])
+@cross_origin()
 def reservation_database():
     """
     Render html template that display reservation's information.
@@ -584,6 +599,7 @@ def reservation_database():
 
 
 @app.route('/reservations', methods=['GET'])
+@cross_origin()
 def get_reservation():
     """
     Send reservation information to service site.
@@ -604,6 +620,7 @@ def get_reservation():
 
 @app.route('/citizen', methods=['GET'])
 # @swag_from("swagger/citizenget.yml")
+@cross_origin()
 def citizen():
     """
     Render html template that display citizen's information.
@@ -631,6 +648,7 @@ def citizen():
 
 
 @app.route('/citizen/<citizen_id>', methods=['GET'])
+@cross_origin()
 def citizen_get_by_citizen_id(citizen_id):
     if not is_citizen_id(citizen_id) or len(db.session.query(Citizen).filter_by(citizen_id=citizen_id).all()) != 1:
         return redirect(url_for('citizen'))
@@ -649,8 +667,9 @@ def citizen_get_by_citizen_id(citizen_id):
     return jsonify(personal_data)
 
 
-@app.route('/citizen', methods=['DELETE', 'OPTIONS'])
+@app.route('/citizen', methods=['DELETE'])
 @swag_from("swagger/citizendel.yml")
+@cross_origin()
 def reset_citizen_db():
     """
     Reset citizen database.
