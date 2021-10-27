@@ -21,7 +21,8 @@ ma = Marshmallow(app)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s %(levelname)s %(name)s: %(message)s')
 
 file_handler = logging.FileHandler('government.log')
 file_handler.setFormatter(formatter)
@@ -36,27 +37,29 @@ app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
 
 swagger_config = {
     "headers": [],
-    "specs": [
-        {
-            "title": "WCG-api",
-            "description": "This is api documentation for World Class Government's government module",
-            "version": "1.0.0",
-            "externalDocs": {
-                "description": "See our github",
-                "url": "https://github.com/WorldClassProgrammers/Government-APIs",
-            },
-            "servers": {
-                "url": "https://wcg-apis.herokuapp.com"
-            },
-            "endpoint": "api-doc",
-            "route": "/api",
-            "rule_filter": lambda rule: True,
-            "model_filter": lambda tag: True,
-        }
-    ],
-    "static_url_path": "/flasgger_static",
-    "swagger_ui": True,
-    "specs_route": "/api-doc/",
+    "specs": [{
+        "title": "WCG-api",
+        "description":
+        "This is api documentation for World Class Government's government module",
+        "version": "1.0.0",
+        "externalDocs": {
+            "description": "See our github",
+            "url": "https://github.com/WorldClassProgrammers/Government-APIs",
+        },
+        "servers": {
+            "url": "https://wcg-apis.herokuapp.com"
+        },
+        "endpoint": "api-doc",
+        "route": "/api",
+        "rule_filter": lambda rule: True,
+        "model_filter": lambda tag: True,
+    }],
+    "static_url_path":
+    "/flasgger_static",
+    "swagger_ui":
+    True,
+    "specs_route":
+    "/api-doc/",
 }
 
 swagger = Swagger(app, config=swagger_config)
@@ -80,6 +83,14 @@ VACCINE_PATTERN = [
 
 
 def get_available_vaccine(vaccine_taken: list):
+    """Return sorted list of available vaccine calculate from the vaccine that citizen have taken
+
+    Args:
+        vaccine_taken (list): the vaccine that citizen have taken
+
+    Returns:
+        list: list of available vaccine
+    """
     available_vaccine = set()
     for pattern in VACCINE_PATTERN:
         length = len(vaccine_taken)
@@ -119,25 +130,69 @@ def delta_year(birth_date: datetime):
 
 
 def is_citizen_id(citizen_id):
+    """Return True if citizen_id is a string 10 digits
+
+    Args:
+        citizen_id (string): id of a citizen
+
+    Returns:
+        bool: True if valid citizen_id, False otherwise
+    """
     return citizen_id.isdigit() and len(citizen_id) == 13
 
 
 def is_registered(citizen_id):
-    return db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).count() > 0
+    """Return True if citizen_id is registered in database
+
+    Args:
+        citizen_id (string): id of a citizen
+
+    Returns:
+        bool: True if citizen_id is registered, False otherwise
+    """
+    return db.session.query(Citizen).filter(
+        Citizen.citizen_id == citizen_id).count() > 0
 
 
 def is_reserved(citizen_id):
-    return db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).filter(
-        Reservation.checked == False).count() > 0
+    """Return True if citizen_id is reserved in database
+
+    Args:
+        citizen_id (string): id of a citizen
+
+    Returns:
+        bool: True if citizen_id is reserved, False otherwise
+    """
+    return db.session.query(Reservation).filter(
+        Reservation.citizen_id == citizen_id).filter(
+            Reservation.checked == False).count() > 0
 
 
 def get_unchecked_reservations(citizen_id):
-    return db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).filter(
-        Reservation.checked == False)
+    """Return query of unchecked reservations of citizen
+
+    Args:
+        citizen_id (string): id of a citizen
+
+    Returns:
+        query: citizen's unchecked reservations
+    """
+    return db.session.query(Reservation).filter(
+        Reservation.citizen_id == citizen_id).filter(
+            Reservation.checked == False)
 
 
 def get_citizen(citizen_id):
-    return db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
+    """Return citizen of the citizen_id
+
+    Args:
+        citizen_id (string): id of a citizen
+
+    Returns:
+        Citizen: citizen of the citizen_id
+    """
+    return db.session.query(Citizen).filter(
+        Citizen.citizen_id == citizen_id).first()
 
 
 def validate_vaccine(citizen, vaccine_name, json_data):
@@ -190,9 +245,10 @@ class Citizen(db.Model):
         self.occupation = occupation
         self.address = address
         self.vaccine_taken = []
-        logger.info('created Citizen: {} - {} {} - birth date: {} occupation: {} address: {} vaccine taken: {}'
-                    .format(self.citizen_id, self.name, self.surname, self.birth_date, self.occupation, self.address,
-                            self.vaccine_taken))
+        logger.info(
+            'created Citizen: {} - {} {} - birth date: {} occupation: {} address: {} vaccine taken: {}'
+            .format(self.citizen_id, self.name, self.surname, self.birth_date,
+                    self.occupation, self.address, self.vaccine_taken))
 
     def __str__(self):
         return f"""
@@ -234,9 +290,10 @@ class Reservation(db.Model):
         self.site_name = site_name
         self.vaccine_name = vaccine_name
         self.timestamp = datetime.now()
-        logger.info('created Reservation: {} - site name: {} vaccine name: {} time: {} queue: {} checked: {}'
-                    .format(self.citizen_id, self.site_name, self.vaccine_name, self.timestamp, self.queue,
-                            self.checked))
+        logger.info(
+            'created Reservation: {} - site name: {} vaccine name: {} time: {} queue: {} checked: {}'
+            .format(self.citizen_id, self.site_name, self.vaccine_name,
+                    self.timestamp, self.queue, self.checked))
 
     def __str__(self):
         print(type(self.timestamp))
@@ -309,7 +366,8 @@ def registration():
     occupation = request.values['occupation']
     address = request.values['address']
 
-    if not (citizen_id and name and surname and birth_date and occupation and address):
+    if not (citizen_id and name and surname and birth_date and occupation
+            and address):
         logger.error("registration failed: missing some attribute")
         return {"feedback": "registration failed: missing some attribute"}
 
@@ -319,25 +377,34 @@ def registration():
 
     if is_registered(citizen_id):
         logger.error("registration failed: this person already registered")
-        return {"feedback": "registration failed: this person already registered"}
+        return {
+            "feedback": "registration failed: this person already registered"
+        }
 
     try:
         birth_date = parsing_date(birth_date)
         if delta_year(birth_date) <= 12:
             logger.error("registration failed: not archived minimum age")
-            return {"feedback": "registration failed: not archived minimum age"}
+            return {
+                "feedback": "registration failed: not archived minimum age"
+            }
     except ValueError:
         logger.error("registration failed: invalid birth date format")
         return {"feedback": "registration failed: invalid birth date format"}
 
     try:
-        data = Citizen(int(citizen_id), name, surname, birth_date, occupation, address)
+        data = Citizen(int(citizen_id), name, surname, birth_date, occupation,
+                       address)
         db.session.add(data)
         db.session.commit()
     except:
         db.session.rollback()
-        logger.error("registration failed: something go wrong, please contact admin")
-        return {"feedback": "registration failed: something go wrong, please contact admin"}
+        logger.error(
+            "registration failed: something go wrong, please contact admin")
+        return {
+            "feedback":
+            "registration failed: something go wrong, please contact admin"
+        }
 
     return {"feedback": "registration success!"}
 
@@ -367,8 +434,14 @@ def reservation():
     citizen_id = request.values['citizen_id']
     site_name = request.values['site_name']
     vaccine_name = request.values['vaccine_name']
-    json_data = {"citizen_id": citizen_id, "site_name": site_name, "vaccine_name": vaccine_name,
-                 "timestamp": datetime.now(), "queue": None, "checked": False}
+    json_data = {
+        "citizen_id": citizen_id,
+        "site_name": site_name,
+        "vaccine_name": vaccine_name,
+        "timestamp": datetime.now(),
+        "queue": None,
+        "checked": False
+    }
 
     if not (citizen_id and site_name and vaccine_name):
         feedback = "reservation failed: missing some attribute"
@@ -411,8 +484,13 @@ def reservation():
         db.session.commit()
     except:
         db.session.rollback()
-        logger.error("reservation failed: something went wrong, please contact the admin")
-        return {"feedback": "reservation failed: something went wrong, please contact the admin"}
+        logger.error(
+            "reservation failed: something went wrong, please contact the admin"
+        )
+        return {
+            "feedback":
+            "reservation failed: something went wrong, please contact the admin"
+        }
 
     return {"feedback": "reservation success!"}
 
@@ -428,7 +506,9 @@ def cancel_reservation():
 
     if not (citizen_id):
         logger.error("cancel reservation failed: no citizen id is given")
-        return {"feedback": "cancel reservation failed: no citizen id is given"}
+        return {
+            "feedback": "cancel reservation failed: no citizen id is given"
+        }
 
     if not is_citizen_id(citizen_id):
         logger.error("cancel reservation failed: invalid citizen ID")
@@ -439,10 +519,12 @@ def cancel_reservation():
         return {"feedback": "reservation failed: citizen ID is not registered"}
 
     if not is_reserved(citizen_id):
-        logger.error("cancel reservation failed: there is no reservation for this citizen")
+        logger.error(
+            "cancel reservation failed: there is no reservation for this citizen"
+        )
         return {
             "feedback":
-                "cancel reservation failed: there is no reservation for this citizen"
+            "cancel reservation failed: there is no reservation for this citizen"
         }
 
     try:
@@ -451,9 +533,13 @@ def cancel_reservation():
         db.session.commit()
     except:
         db.session.rollback()
-        logger.error("cancel reservation failed: couldn't find valid reservation")
-        return {"feedback": "cancel reservation failed: couldn't find valid reservation"}
-    
+        logger.error(
+            "cancel reservation failed: couldn't find valid reservation")
+        return {
+            "feedback":
+            "cancel reservation failed: couldn't find valid reservation"
+        }
+
     logger.info("{} - cancel reservation".format(citizen_id))
     return {"feedback": "cancel reservation successfully"}
 
@@ -474,10 +560,11 @@ def update_queue():
     try:
         queue = datetime.strptime(queue, "%Y-%m-%d %H:%M:%S.%f")
         if queue <= datetime.now():
-            logger.error("report failed: can only reserve vaccine in the future")
+            logger.error(
+                "report failed: can only reserve vaccine in the future")
             return {
                 "feedback":
-                    "report failed: can only reserve vaccine in the future"
+                "report failed: can only reserve vaccine in the future"
             }
     except ValueError:
         logger.error("report failed: invalid queue datetime format")
@@ -491,7 +578,7 @@ def update_queue():
         db.session.rollback()
         logger.error("report failed: couldn't find valid reservation")
         return {"feedback": "report failed: couldn't find valid reservation"}
-    
+
     logger.info("{} - updated queue - queue: {}".format(citizen_id, queue))
     return {"feedback": "report success!"}
 
@@ -524,44 +611,57 @@ def update_citizen_db():
     if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
         logger.error("report failed: invalid vaccine name")
         return {"feedback": "report failed: invalid vaccine name"}
-    
+
     try:
         option = request.values['option']
         if (option == "walk-in"):
             if is_reserved(citizen_id):
-                logger.error("report failed: before walk-in, citizen need to cancel other reservation")
+                logger.error(
+                    "report failed: before walk-in, citizen need to cancel other reservation"
+                )
                 return {
                     "feedback":
-                        "report failed: before walk-in, citizen need to cancel other reservation"
+                    "report failed: before walk-in, citizen need to cancel other reservation"
                 }
 
             try:
                 citizen = get_citizen(citizen_id)
-                is_valid, feedback = validate_vaccine(citizen, vaccine_name, None)
+                is_valid, feedback = validate_vaccine(citizen, vaccine_name,
+                                                      None)
 
                 if not is_valid:
-                    logger.error("{} - {}".format(citizen_id, feedback['feedback']))
+                    logger.error("{} - {}".format(citizen_id,
+                                                  feedback['feedback']))
                     return feedback
 
-                citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
+                citizen.vaccine_taken = [
+                    *(citizen.vaccine_taken), vaccine_name
+                ]
                 db.session.commit()
             except:
                 db.session.rollback()
-                logger.error("report failed: something go wrong, please contact admin")
-                return {"feedback": "report failed: something go wrong, please contact admin"}
+                logger.error(
+                    "report failed: something go wrong, please contact admin")
+                return {
+                    "feedback":
+                    "report failed: something go wrong, please contact admin"
+                }
     except:
         pass
-    
+
     if not is_reserved(citizen_id):
         logger.error("report failed: there is no reservation for this citizen")
         return {
             "feedback":
-                "report failed: there is no reservation for this citizen"
+            "report failed: there is no reservation for this citizen"
         }
-        
+
     try:
-        citizen_data = db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first()
-        citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+        citizen_data = db.session.query(Citizen).filter(
+            Citizen.citizen_id == citizen_id).first()
+        citizen_data.vaccine_taken = [
+            *(citizen_data.vaccine_taken), vaccine_name
+        ]
         reservation_data = get_unchecked_reservations(citizen_id).filter(
             Reservation.vaccine_name == vaccine_name).first()
         reservation_data.checked = True
@@ -569,9 +669,12 @@ def update_citizen_db():
     except:
         db.session.rollback()
         logger.error("report failed: vaccine_name not match reservation")
-        return {"feedback": "report failed: vaccine_name not match reservation"}
-    
-    logger.info("{} - updated citizen - vaccine name: {}".format(citizen_id, vaccine_name))
+        return {
+            "feedback": "report failed: vaccine_name not match reservation"
+        }
+
+    logger.info("{} - updated citizen - vaccine name: {}".format(
+        citizen_id, vaccine_name))
     return {"feedback": "report success!"}
 
 
@@ -609,15 +712,28 @@ def get_reservation():
     """
     reservations = []
     for reservation in db.session.query(Reservation).all():
-        citizen = db.session.query(Citizen).filter(reservation.citizen_id == Citizen.citizen_id).first()
-        citizen_data = {"citizen_id": citizen.citizen_id, "name": citizen.name, "surname": citizen.surname,
-                        "birth_date": citizen.birth_date, "occupation": citizen.occupation, "address": citizen.address,
-                        "vaccine_taken": citizen.vaccine_taken}
-        reservation_data = {"citizen_id": reservation.citizen_id, "site_name": reservation.site_name,
-                            "vaccine_name": reservation.vaccine_name, "timestamp": reservation.timestamp,
-                            "queue": reservation.queue, "checked": reservation.checked, "citizen_data": citizen_data}
+        citizen = db.session.query(Citizen).filter(
+            reservation.citizen_id == Citizen.citizen_id).first()
+        citizen_data = {
+            "citizen_id": citizen.citizen_id,
+            "name": citizen.name,
+            "surname": citizen.surname,
+            "birth_date": citizen.birth_date,
+            "occupation": citizen.occupation,
+            "address": citizen.address,
+            "vaccine_taken": citizen.vaccine_taken
+        }
+        reservation_data = {
+            "citizen_id": reservation.citizen_id,
+            "site_name": reservation.site_name,
+            "vaccine_name": reservation.vaccine_name,
+            "timestamp": reservation.timestamp,
+            "queue": reservation.queue,
+            "checked": reservation.checked,
+            "citizen_data": citizen_data
+        }
         reservations.append(reservation_data)
-        
+
     logger.info("service site get reservation data")
     return jsonify({"reservations": reservations})
 
@@ -653,10 +769,13 @@ def citizen():
 @app.route('/citizen/<citizen_id>', methods=['GET'])
 @cross_origin()
 def citizen_get_by_citizen_id(citizen_id):
-    if not is_citizen_id(citizen_id) or len(db.session.query(Citizen).filter_by(citizen_id=citizen_id).all()) != 1:
+    if not is_citizen_id(citizen_id) or len(
+            db.session.query(Citizen).filter_by(
+                citizen_id=citizen_id).all()) != 1:
         feedback_message = "report failed: citizen not found"
         logger.error(feedback_message)
         return redirect(url_for('citizen'), 404)
+    
     person = db.session.query(Citizen).filter_by(citizen_id=citizen_id)[0]
     personal_data = {
         'id': person.id,
@@ -684,10 +803,13 @@ def reset_citizen_db():
         if not is_citizen_id(citizen_id):
             logger.error("report failed: invalid citizen ID")
             return {"feedback": "report failed: invalid citizen ID"}
-    
-        if db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).first() is not None:
-            db.session.query(Citizen).filter(Citizen.citizen_id == citizen_id).delete()
-            db.session.query(Reservation).filter(Reservation.citizen_id == citizen_id).delete()
+
+        if db.session.query(Citizen).filter(
+                Citizen.citizen_id == citizen_id).first() is not None:
+            db.session.query(Citizen).filter(
+                Citizen.citizen_id == citizen_id).delete()
+            db.session.query(Reservation).filter(
+                Reservation.citizen_id == citizen_id).delete()
             db.session.commit()
         else:
             db.session.rollback()
