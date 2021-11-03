@@ -495,7 +495,7 @@ def reservation():
     return {"feedback": "reservation success!"}
 
 
-@app.route('/reservation', methods=['DELETE'])
+@app.route('/reservation_delete', methods=['DELETE'])
 @cross_origin()
 @swag_from("swagger/reservedel.yml")
 def cancel_reservation():
@@ -768,6 +768,7 @@ def citizen():
 
 @app.route('/registration/<citizen_id>', methods=['GET'])
 @cross_origin()
+@swag_from("swagger/singleID.yml")
 def citizen_get_by_citizen_id(citizen_id):
     if not is_citizen_id(citizen_id) or len(
             db.session.query(Citizen).filter_by(
@@ -791,7 +792,7 @@ def citizen_get_by_citizen_id(citizen_id):
     return jsonify(personal_data)
 
 
-@app.route('/citizen', methods=['DELETE'])
+@app.route('/registration_delete', methods=['DELETE'])
 @cross_origin()
 @swag_from("swagger/citizendel.yml")
 def reset_citizen_db():

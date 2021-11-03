@@ -2,37 +2,37 @@ tags:
   - name: Register
 summary: Accept and validate registration information.
 consumes:
-  - "application/json"
+  - "application/x-www-form-urlencoded"
 produces:
   - "application/json"
 parameters:
   - name: "citizen_id"
-    in: query
-    description: "citizen id must be a uniqe combination of 13 digits number"
+    in: formData
+    description: "citizen id must be a unique combination of 13 digits number"
     type: "string"
     required: true
   - name: "name"
-    in: query
+    in: formData
     description: "first name of citizen"
     type: "string"
     required: true
   - name: "surname"
-    in: query
+    in: formData
     description: "surname of citizen"
     type: "string"
     required: true
   - name: "birth_date"
-    in: query
+    in: formData
     description: "birth date need to be in one of the available formats ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']"
     type: "string"
     required: true
   - name: "occupation"
-    in: query
+    in: formData
     description: "occupation of citizen"
     type: "string"
     required: true
   - name: "address"
-    in: query
+    in: formData
     description: "current address of citizen"
     type: "string"
     required: true

@@ -1,0 +1,47 @@
+tags:
+  - name: Register
+summary: Accept and validate registration information.
+consumes:
+  - "application/x-www-form-urlencoded"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: path
+    description: "citizen id must be a unique combination of 13 digits number"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: information of citizen
+    schema:
+      type: array
+      items:
+          type: object
+          properties:
+            citizen_id:
+              type: string
+              example: 1111111111111
+            name:
+              type: string
+              example: name
+            surname:
+              type: string
+              example: surname
+            birth_date:
+              type: string
+              example: xxxx-xx-xx
+            occupation:
+              type: string
+              example: occupation
+            address:
+              type: string
+              example: address
+            id: 
+              type: string
+              example: id
+            vaccine-taken:
+              type: string
+              example: [] 
+  400:
+    description: Bad request

@@ -2,17 +2,17 @@ tags:
   - name: QueueReport
 summary: Send report of vaccination queue
 consumes:
-  - "application/json"
+  - "application/x-www-form-urlencoded"
 produces:
   - "application/json"
 parameters:
   - name: "citizen_id"
-    in: query
+    in: formData
     description: "citizen id must be a unique combination of 13 digits number and registerd"
     type: "string"
     required: true
   - name: "queue"
-    in: query
+    in: formData
     description: "queue need to be in format ['%Y-%m-%d %H:%M:%S.%f']"
     type: "string"
     required: true

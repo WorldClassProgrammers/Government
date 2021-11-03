@@ -2,22 +2,22 @@ tags:
   - name: Reservation
 summary: Add reservation data to the database
 consumes:
-  - "application/json"
+  - "application/x-www-form-urlencoded"
 produces:
   - "application/json"
 parameters:
   - name: "citizen_id"
-    in: query
+    in: formData
     description: "citizen id must be a unique combination of 13 digits number and registered"
     type: "string"
     required: true
   - name: "site_name"
-    in: query
+    in: formData
     description: "vaccination site name"
     type: "string"
     required: true
   - name: "vaccine_name"
-    in: query
+    in: formData
     description: "vaccine name needs to be one of available vaccine [Pfizer, Astra, Sinofarm, or Sinovac] and follow vaccination orders"
     type: "string"
     required: true
