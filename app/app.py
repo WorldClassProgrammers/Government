@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
@@ -8,6 +8,7 @@ from flasgger.utils import swag_from
 from flask_marshmallow import Marshmallow
 import os
 import logging
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -21,8 +22,7 @@ ma = Marshmallow(app)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-formatter = logging.Formatter(
-    '%(asctime)s %(levelname)s %(name)s: %(message)s')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s')
 
 file_handler = logging.FileHandler('government.log')
 file_handler.setFormatter(formatter)
@@ -236,8 +236,7 @@ class Citizen(db.Model):
     address = db.Column(db.Text())
     vaccine_taken = db.Column(db.PickleType())
 
-    def __init__(self, citizen_id, name, surname, birth_date, occupation,
-                 address):
+    def __init__(self, citizen_id, name, surname, birth_date, occupation, address):
         self.citizen_id = citizen_id
         self.name = name
         self.surname = surname
@@ -339,11 +338,11 @@ def registration_as_json():
     """
     citizen_schema = CitizenSchema(many=True)
     data = citizen_schema.dump(db.session.query(Citizen).all())
-    logger.info("get reservation data")
-    return jsonify(data)
+    logger.info("get registration data")
+    return json.dumps(data, ensure_ascii=False)
 
 
-@app.route('/registration_usage', methods=['GET'])
+@app.route('/document/registration', methods=['GET'])
 @cross_origin()
 def registration_usage():
     """
@@ -414,7 +413,7 @@ def registration():
         "address": data.address,
         "vaccine_taken": data.vaccine_taken
     }
-    return jsonify(registration_data), 201, \
+    return json.dumps(registration_data, ensure_ascii=False), 201, \
         {'Location': url_for('citizen_get_by_citizen_id', citizen_id=data.citizen_id, _external=True)}
 
 
@@ -424,10 +423,10 @@ def registration():
 def reservation_as_json():
     reservation_schema = ReservationSchema(many=True)
     data = reservation_schema.dump(db.session.query(Reservation).all())
-    return jsonify(data)
+    return json.dumps(data, ensure_ascii=False)
 
 
-@app.route('/reservation_usage', methods=['GET'])
+@app.route('/document/reservation', methods=['GET'])
 @cross_origin()
 def reservation_usage():
     return render_template('reservation.html')
@@ -456,25 +455,25 @@ def reservation():
         feedback = "reservation failed: missing some attribute"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return jsonify(json_data)
+        return json.dumps(json_data, ensure_ascii=False)
 
     if not is_citizen_id(citizen_id):
         feedback = "reservation failed: invalid citizen ID"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return jsonify(json_data)
+        return json.dumps(json_data, ensure_ascii=False)
 
     if not is_registered(citizen_id):
         feedback = "reservation failed: citizen ID is not registered"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return jsonify(json_data)
+        return json.dumps(json_data, ensure_ascii=False)
 
     if is_reserved(citizen_id):
         feedback = "reservation failed: there is already a reservation for this citizen"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return jsonify(json_data)
+        return json.dumps(json_data, ensure_ascii=False)
 
     if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
         logger.error("report failed: invalid vaccine name")
@@ -504,7 +503,7 @@ def reservation():
     return {"feedback": "reservation success!"}
 
 
-@app.route('/reservation_delete', methods=['DELETE'])
+@app.route('/reservation', methods=['DELETE'])
 @cross_origin()
 @swag_from("swagger/reservedel.yml")
 def cancel_reservation():
@@ -553,7 +552,7 @@ def cancel_reservation():
     return {"feedback": "cancel reservation successfully"}
 
 
-@app.route('/queue_report', methods=['GET'])
+@app.route('/document/queue_report', methods=['GET'])
 @cross_origin()
 def queue_report_usage():
     return render_template('queue_report.html')
@@ -592,7 +591,7 @@ def update_queue():
     return {"feedback": "report success!"}
 
 
-@app.route('/report_taken', methods=['GET'])
+@app.route('/document/report_taken', methods=['GET'])
 @cross_origin()
 def report_taken_usage():
     return render_template('report_taken.html')
@@ -687,7 +686,7 @@ def update_citizen_db():
     return {"feedback": "report success!"}
 
 
-@app.route('/reservation_database', methods=['GET'])
+@app.route('/database/reservation', methods=['GET'])
 @cross_origin()
 def reservation_database():
     """
@@ -744,10 +743,10 @@ def get_reservation():
         reservations.append(reservation_data)
 
     logger.info("service site get reservation data")
-    return jsonify({"reservations": reservations})
+    return json.dumps({"reservations": reservations}, ensure_ascii=False)
 
 
-@app.route('/citizen', methods=['GET'])
+@app.route('/database/citizen', methods=['GET'])
 @cross_origin()
 def citizen():
     """
@@ -785,23 +784,23 @@ def citizen_get_by_citizen_id(citizen_id):
         feedback_message = "report failed: citizen not found"
         logger.error(feedback_message)
         return redirect(url_for('citizen'), 404)
-    
-    person = db.session.query(Citizen).filter_by(citizen_id=citizen_id)[0]
+
+    person = get_citizen(citizen_id)
     personal_data = {
-        'id': person.id,
-        'citizen-id': person.citizen_id,
-        'name': person.name,
-        'surname': person.surname,
-        'birth-date': person.birth_date,
-        'occupation': person.occupation,
-        'address': person.address,
-        'vaccine-taken': person.vaccine_taken,
+        'id': str(person.id),
+        'citizen_id': str(person.citizen_id),
+        'name': str(person.name),
+        'surname': str(person.surname),
+        'birth_date': str(person.birth_date),
+        'occupation': str(person.occupation),
+        'address': str(person.address),
+        'vaccine_taken': str(person.vaccine_taken)
     }
     logger.info("{} - get citizen data".format(citizen_id))
-    return jsonify(personal_data)
+    return json.dumps(personal_data, ensure_ascii=False)
 
 
-@app.route('/registration_delete', methods=['DELETE'])
+@app.route('/registration', methods=['DELETE'])
 @cross_origin()
 @swag_from("swagger/citizendel.yml")
 def reset_citizen_db():
@@ -814,10 +813,8 @@ def reset_citizen_db():
             logger.error("report failed: invalid citizen ID")
             return {"feedback": "report failed: invalid citizen ID"}
 
-        if db.session.query(Citizen).filter(
-                Citizen.citizen_id == citizen_id).first() is not None:
-            db.session.query(Citizen).filter(
-                Citizen.citizen_id == citizen_id).delete()
+        if get_citizen(citizen_id) is not None:
+            get_citizen(citizen_id).delete()
             db.session.query(Reservation).filter(
                 Reservation.citizen_id == citizen_id).delete()
             db.session.commit()
@@ -831,16 +828,16 @@ def reset_citizen_db():
         logger.info("{} - citizen has been deleted".format(citizen_id))
         return redirect(url_for('citizen'))
 
-    try:
-        db.session.query(Citizen).delete()
-        db.session.query(Reservation).delete()
-        db.session.commit()
-    except:
-        db.session.rollback()
-        logger.error("failed to delete citizen")
-    else:
-        logger.info("all citizens have been deleted")
-        return redirect(url_for('citizen'))
+    # try:
+    #     db.session.query(Citizen).delete()
+    #     db.session.query(Reservation).delete()
+    #     db.session.commit()
+    # except:
+    #     db.session.rollback()
+    #     logger.error("failed to delete citizen")
+    # else:
+    #     logger.info("all citizens have been deleted")
+    #     return redirect(url_for('citizen'))
 
 
 if __name__ == '__main__':
