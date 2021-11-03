@@ -405,8 +405,17 @@ def registration():
             "feedback":
             "registration failed: something go wrong, please contact admin"
         }
-
-    return {"feedback": "registration success!"}
+    registration_data = {
+        "citizen_id": data.citizen_id,
+        "name": data.name,
+        "surname": data.surname,
+        "birth_date": data.birth_date,
+        "occupation": data.occupation,
+        "address": data.address,
+        "vaccine_taken": data.vaccine_taken
+    }
+    return jsonify(registration_data), 201, \
+        {'Location': url_for('citizen_get_by_citizen_id', citizen_id=data.citizen_id, _external=True)}
 
 
 @app.route('/reservation', methods=['GET'])
