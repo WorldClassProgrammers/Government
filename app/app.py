@@ -14,7 +14,8 @@ app = Flask(__name__)
 CORS(app)
 
 app.debug = os.getenv("DEBUG")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:zezay2001@localhost/government"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -80,6 +81,15 @@ VACCINE_PATTERN = [
     ["Sinovac", "Sinopharm", "Pfizer"],
     ["Astra", "Astra", "Pfizer"],
 ]
+
+FEEDBACK = {
+    'success':            'registration success!',
+    'missing_key':        'registration failed: missing some attribute',
+    'registed':           'registration failed: this person already registed',
+    'invalid_id':         'registration failed: invalid citizen ID',
+    'invalid_birthdate':  'registration failed: invalid birth date format',
+    'invalid_age':        'registration failed: not archived minimum age'
+}
 
 
 def get_available_vaccine(vaccine_taken: list):
@@ -209,7 +219,7 @@ def validate_vaccine(citizen, vaccine_name, json_data):
         if json_data == None:
             return False, {"feedback": feedback}
         json_data["feedback"] = feedback
-        return False, jsonify(json_data)
+        return False, json.dumps(json_data, ensure_ascii=False)
 
     return True, {}
 
@@ -723,21 +733,21 @@ def get_reservation():
         citizen = db.session.query(Citizen).filter(
             reservation.citizen_id == Citizen.citizen_id).first()
         citizen_data = {
-            "citizen_id": citizen.citizen_id,
+            "citizen_id": str(citizen.citizen_id),
             "name": citizen.name,
             "surname": citizen.surname,
-            "birth_date": citizen.birth_date,
+            "birth_date": str(citizen.birth_date),
             "occupation": citizen.occupation,
             "address": citizen.address,
             "vaccine_taken": citizen.vaccine_taken
         }
         reservation_data = {
-            "citizen_id": reservation.citizen_id,
+            "citizen_id": str(reservation.citizen_id),
             "site_name": reservation.site_name,
             "vaccine_name": reservation.vaccine_name,
-            "timestamp": reservation.timestamp,
+            "timestamp": str(reservation.timestamp),
             "queue": reservation.queue,
-            "checked": reservation.checked,
+            "checked": str(reservation.checked),
             "citizen_data": citizen_data
         }
         reservations.append(reservation_data)
@@ -789,11 +799,11 @@ def citizen_get_by_citizen_id(citizen_id):
     personal_data = {
         'id': str(person.id),
         'citizen_id': str(person.citizen_id),
-        'name': str(person.name),
-        'surname': str(person.surname),
+        'name': person.name,
+        'surname': person.surname,
         'birth_date': str(person.birth_date),
-        'occupation': str(person.occupation),
-        'address': str(person.address),
+        'occupation': person.occupation,
+        'address': person.address,
         'vaccine_taken': str(person.vaccine_taken)
     }
     logger.info("{} - get citizen data".format(citizen_id))
