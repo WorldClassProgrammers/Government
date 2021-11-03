@@ -766,7 +766,7 @@ def citizen():
     return html
 
 
-@app.route('/citizen/<citizen_id>', methods=['GET'])
+@app.route('/registration/<citizen_id>', methods=['GET'])
 @cross_origin()
 def citizen_get_by_citizen_id(citizen_id):
     if not is_citizen_id(citizen_id) or len(
