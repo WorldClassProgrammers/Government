@@ -14,8 +14,7 @@ app = Flask(__name__)
 CORS(app)
 
 app.debug = os.getenv("DEBUG")
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:zezay2001@localhost/government"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -81,15 +80,6 @@ VACCINE_PATTERN = [
     ["Sinovac", "Sinopharm", "Pfizer"],
     ["Astra", "Astra", "Pfizer"],
 ]
-
-FEEDBACK = {
-    'success':            'registration success!',
-    'missing_key':        'registration failed: missing some attribute',
-    'registed':           'registration failed: this person already registed',
-    'invalid_id':         'registration failed: invalid citizen ID',
-    'invalid_birthdate':  'registration failed: invalid birth date format',
-    'invalid_age':        'registration failed: not archived minimum age'
-}
 
 
 def get_available_vaccine(vaccine_taken: list):
