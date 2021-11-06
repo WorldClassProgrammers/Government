@@ -152,7 +152,7 @@ def validate_vaccine(citizen, vaccine_name, json_data):
         if json_data == None:
             return False, {"feedback": feedback}
         json_data["feedback"] = feedback
-        return False, jsonify(json_data)
+        return False, json_data
 
     return True, {}
 
@@ -396,7 +396,7 @@ def reservation():
 
     if not is_valid:
         logger.error("{} - {}".format(citizen_id, json_data['feedback']))
-        return json_data
+        return jsonify(json_data)
 
     try:
         data = Reservation(int(citizen_id), site_name, vaccine_name)
@@ -526,7 +526,7 @@ def update_citizen_db():
 
             if not is_valid:
                 logger.error("{} - {}".format(citizen_id, feedback['feedback']))
-                return feedback
+                return jsonify(feedback)
 
             citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
             db.session.commit()
