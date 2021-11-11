@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for
+from codecs import encode
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from string import Template
@@ -339,7 +340,9 @@ def registration_as_json():
     citizen_schema = CitizenSchema(many=True)
     data = citizen_schema.dump(db.session.query(Citizen).all())
     logger.info("get registration data")
-    return json.dumps(data, ensure_ascii=False)
+    # return json.dumps(data, ensure_ascii=False)
+    return jsonify(data)
+
 
 
 @app.route('/document/registration', methods=['GET'])
@@ -413,8 +416,11 @@ def registration():
         "address": data.address,
         "vaccine_taken": data.vaccine_taken
     }
-    return json.dumps(registration_data, ensure_ascii=False), 201, \
+    # return json.dumps(registration_data, ensure_ascii=False), 201, \
+    #     {'Location': url_for('citizen_get_by_citizen_id', citizen_id=data.citizen_id, _external=True)}
+    return jsonify(registration_data), 201, \
         {'Location': url_for('citizen_get_by_citizen_id', citizen_id=data.citizen_id, _external=True)}
+    # return {"feedback": "reservation success!"}
 
 
 @app.route('/reservation', methods=['GET'])
@@ -424,6 +430,7 @@ def reservation_as_json():
     reservation_schema = ReservationSchema(many=True)
     data = reservation_schema.dump(db.session.query(Reservation).all())
     return json.dumps(data, ensure_ascii=False)
+    # return jsonify(data)
 
 
 @app.route('/document/reservation', methods=['GET'])
@@ -603,6 +610,7 @@ def report_taken_usage():
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
+    option = request.values['option']
 
     if not (citizen_id and vaccine_name and option):
         logger.error("report failed: missing some attribute")
