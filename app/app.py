@@ -6,7 +6,6 @@ from string import Template
 from datetime import datetime
 from flasgger import Swagger
 from flasgger.utils import swag_from
-from flask_marshmallow import Marshmallow
 import os
 import logging
 import json
@@ -18,7 +17,6 @@ app.debug = os.getenv("DEBUG")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-ma = Marshmallow(app)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
