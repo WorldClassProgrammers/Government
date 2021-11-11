@@ -29,6 +29,7 @@ responses:
               type: string
             checked:
               type: string
+<<<<<<< HEAD
             citizen_data:
               type: object
               properties:
@@ -45,5 +46,7 @@ responses:
                   type: string
                 address:
                   type: string
+=======
+>>>>>>> 41cdf46e09d40d152568f94ce6545eaa7747458b
   400:
     description: Bad request
