@@ -817,8 +817,7 @@ def citizen_get_by_citizen_id(citizen_id):
         return redirect(url_for('citizen'), 404)
 
     for reservation in db.session.query(Reservation).all():
-        citizen = db.session.query(Citizen).filter(
-            reservation.citizen_id == Citizen.citizen_id).first()
+        citizen = db.session.query(Citizen).all()
         reservation_data = {
             "citizen_id": str(reservation.citizen_id),
             "site_name": reservation.site_name,
