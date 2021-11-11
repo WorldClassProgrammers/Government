@@ -827,6 +827,15 @@ def citizen_get_by_citizen_id(citizen_id):
             "queue": reservation.queue,
             "checked": str(reservation.checked),
         }
+        if not is_reserved(citizen_id):
+            reservation_data = {
+                "citizen_id": "",
+                "site_name": "",
+                "vaccine_name": "",
+                "timestamp": "",
+                "queue": "",
+                "checked": ""
+            }
         citizen_data = {
             "citizen_id": str(citizen.citizen_id),
             "name": citizen.name,
