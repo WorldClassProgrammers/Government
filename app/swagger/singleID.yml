@@ -42,6 +42,25 @@ responses:
               example: id
             vaccine-taken:
               type: string
-              example: [] 
+              example: []
+            reservation_data:
+              type: object
+              properties:
+                citizen_id:
+                  type: string
+                  description: The citizen ID.
+                site_name:
+                  type: string
+                  description: The reservation site name.
+                vaccine_name:
+                  type: string
+                  description: The vaccine name.
+                timestamp:
+                  type: string
+                  description: The time reservation was send
+                queue:
+                  type: string
+                checked:
+                  type: string
   400:
     description: Bad request
