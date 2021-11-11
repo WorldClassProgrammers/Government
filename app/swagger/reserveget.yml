@@ -22,5 +22,28 @@ responses:
             vaccine_name:
               type: string
               description: The vaccine name.
+            timestamp:
+              type: string
+              description: The time reservation was send
+            queue:
+              type: string
+            checked:
+              type: string
+            items:
+              type: object
+              properties:
+                citizen_id:
+                  type: string
+                name:
+                  type: string
+                surname:
+                  type: string
+                birth_date:
+                  type: string
+                  example: "DD/MM/YYYY"
+                occupation:
+                  type: string
+                address:
+                  type: string
   400:
     description: Bad request
