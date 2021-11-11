@@ -816,24 +816,25 @@ def citizen_get_by_citizen_id(citizen_id):
         logger.error(feedback_message)
         return redirect(url_for('citizen'), 404)
 
-    for reservation in db.session.query(Reservation).all():
-        citizen = db.session.query(Citizen).all()
+    for citizen in db.session.query(Citizen).all():
+        reservation = db.session.query(Reservation).filter(
+            Reservation.citizen_id == Citizen.citizen_id).first()
         reservation_data = {
-            "citizen_id": str(reservation.citizen_id),
-            "site_name": reservation.site_name,
-            "vaccine_name": reservation.vaccine_name,
-            "timestamp": str(reservation.timestamp),
-            "queue": reservation.queue,
-            "checked": str(reservation.checked),
+            "citizen_id": "",
+            "site_name": "",
+            "vaccine_name": "",
+            "timestamp": "",
+            "queue": "",
+            "checked": ""
         }
-        if not is_reserved(citizen_id):
+        if is_reserved(citizen_id):
             reservation_data = {
-                "citizen_id": "",
-                "site_name": "",
-                "vaccine_name": "",
-                "timestamp": "",
-                "queue": "",
-                "checked": ""
+                "citizen_id": str(reservation.citizen_id),
+                "site_name": reservation.site_name,
+                "vaccine_name": reservation.vaccine_name,
+                "timestamp": str(reservation.timestamp),
+                "queue": reservation.queue,
+                "checked": str(reservation.checked),
             }
         citizen_data = {
             "citizen_id": str(citizen.citizen_id),
