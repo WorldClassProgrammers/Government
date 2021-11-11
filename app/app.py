@@ -452,25 +452,25 @@ def reservation():
         feedback = "reservation failed: missing some attribute"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return json.dumps(json_data, ensure_ascii=False)
+        return jsonify(json_data)
 
     if not is_citizen_id(citizen_id):
         feedback = "reservation failed: invalid citizen ID"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return json.dumps(json_data, ensure_ascii=False)
+        return jsonify(json_data)
 
     if not is_registered(citizen_id):
         feedback = "reservation failed: citizen ID is not registered"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return json.dumps(json_data, ensure_ascii=False)
+        return jsonify(json_data)
 
     if is_reserved(citizen_id):
         feedback = "reservation failed: there is already a reservation for this citizen"
         json_data["feedback"] = feedback
         logger.error(feedback)
-        return json.dumps(json_data, ensure_ascii=False)
+        return jsonify(json_data)
 
     if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
         logger.error("report failed: invalid vaccine name")
