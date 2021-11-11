@@ -12,19 +12,17 @@ This project runs on Python 3.6 or higher. It also uses virtualenv to manage vir
 
 These additional packages need to be installed too. All of them are listed in the requirements.txt.
 
-| Name                   | Currently use version | Notes                                                                 |
-| ---------------------- | --------------------- | --------------------------------------------------------------------- |
-| Flask                  | 2.0                   | A simple framework for building complex web applications.             |
-| Flask-SQLAlchemy       | 2.5.1                 | Adds SQLAlchemy support to your Flask application.                    |
-| gunicorn               | 20.1.0                | WSGI HTTP Server for UNIX.                                            |
-| psycopg2               | 2.9.1                 | Python-PostgreSQL Database Adapter.                                   |
-| psycopg2-binary        | 2.9.1                 | Python-PostgreSQL Database Adapter.                                   |
-| SQLAlchemy             | 1.4.25                | Database Abstraction Library.                                         |
-| flasgger               | 0.9.5                 | Auto-API-Document Generator.                                          |
-| flask-swagger          | 0.2.14                | Extract swagger specs from your flask project.                        |
-| flask-marshmallow      | 0.14.0                | Features for styling APIs Document                                    |
-| marshmallow            | 3.14.0                | Converting complex datatypes to and from native Python datatypes.     |
-| marshmallow-sqlalchemy | 0.26.1                | SQLAlchemy integration with the marshmallow (de)serialization library |
+| Name             | Currently use version | Notes                                                                                                   |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------------- |
+| Flask            | 2.0                   | A simple framework for building complex web applications.                                               |
+| Flask-Cors       | 3.0.10                | A Flask extension for handling Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible. |
+| Flask-SQLAlchemy | 2.5.1                 | Adds SQLAlchemy support to your Flask application.                                                      |
+| gunicorn         | 20.1.0                | WSGI HTTP Server for UNIX.                                                                              |
+| psycopg2         | 2.9.1                 | Python-PostgreSQL Database Adapter.                                                                     |
+| psycopg2-binary  | 2.9.1                 | Python-PostgreSQL Database Adapter.                                                                     |
+| SQLAlchemy       | 1.4.25                | Database Abstraction Library.                                                                           |
+| flasgger         | 0.9.5                 | Auto-API-Document Generator.                                                                            |
+| flask-swagger    | 0.2.14                | Extract swagger specs from your flask project.                                                          |
 
 Create local postgres database named 'government'
 
