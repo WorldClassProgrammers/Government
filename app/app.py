@@ -839,7 +839,7 @@ def citizen_get_by_citizen_id(citizen_id):
         }
         if citizen_data["citizen_id"] == citizen_id:
             logger.info("{} - get citizen data".format(citizen_id))
-            return jsonify(reservation_data)
+            return jsonify(citizen_data)
     return redirect(url_for('citizen'), 404)
 
 
