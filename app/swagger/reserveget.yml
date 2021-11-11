@@ -10,7 +10,7 @@ responses:
     description: reservation information
     schema:
       type: array
-      items:
+      citizen_data:
           type: object
           properties:
             citizen_id:
