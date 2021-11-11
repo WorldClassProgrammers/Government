@@ -742,7 +742,7 @@ def get_reservation():
         reservations.append(reservation_data)
 
     logger.info("service site get reservation data")
-    return json.dumps({"reservations": reservations}, ensure_ascii=False)
+    return jsonify(reservations)
 
 
 @app.route('/database/citizen', methods=['GET'])
