@@ -423,16 +423,6 @@ def registration():
     # return {"feedback": "reservation success!"}
 
 
-@app.route('/reservation', methods=['GET'])
-@cross_origin()
-@swag_from("swagger/reserveget.yml")
-def reservation_as_json():
-    reservation_schema = ReservationSchema(many=True)
-    data = reservation_schema.dump(db.session.query(Reservation).all())
-    return json.dumps(data, ensure_ascii=False)
-    # return jsonify(data)
-
-
 @app.route('/document/reservation', methods=['GET'])
 @cross_origin()
 def reservation_usage():
@@ -722,6 +712,7 @@ def reservation_database():
 
 @app.route('/reservations', methods=['GET'])
 @cross_origin()
+@swag_from("swagger/reserveget.yml")
 def get_reservation():
     """
     Send reservation information to service site.
