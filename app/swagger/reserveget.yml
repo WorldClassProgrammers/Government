@@ -29,21 +29,5 @@ responses:
               type: string
             checked:
               type: string
-            items:
-              type: object
-              properties:
-                citizen_id:
-                  type: string
-                name:
-                  type: string
-                surname:
-                  type: string
-                birth_date:
-                  type: string
-                  example: "DD/MM/YYYY"
-                occupation:
-                  type: string
-                address:
-                  type: string
   400:
     description: Bad request
