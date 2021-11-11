@@ -29,7 +29,7 @@ responses:
               type: string
             checked:
               type: string
-            citizen_data:
+            items:
               type: object
               properties:
                 citizen_id:
