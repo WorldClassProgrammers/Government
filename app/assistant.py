@@ -1,5 +1,5 @@
 from datetime import datetime
-from models import Citizen, Reservation
+from app.models import *
 
 VACCINE_SEQUENCE = [
     ["Pfizer", "Pfizer"],
@@ -33,7 +33,7 @@ def get_available_vaccine(vaccine_taken: list):
         length = len(vaccine_taken)
         if length < len(pattern) and pattern[:length] == vaccine_taken:
             available_vaccine.add(pattern[length])
-
+            
     return sorted(list(available_vaccine))
 
 
@@ -78,7 +78,7 @@ def is_citizen_id(citizen_id):
     return citizen_id.isdigit() and len(citizen_id) == 13
 
 
-def is_registered(db, citizen_id):
+def is_registered(citizen_id):
     """Return True if citizen_id is registered in database
 
     Args:
@@ -91,7 +91,7 @@ def is_registered(db, citizen_id):
         Citizen.citizen_id == citizen_id).count() == 1
 
 
-def is_reserved(db, citizen_id):
+def is_reserved(citizen_id):
     """Return True if citizen_id is reserved in database
 
     Args:
@@ -105,7 +105,7 @@ def is_reserved(db, citizen_id):
             Reservation.checked == False).count() > 0
 
 
-def get_unchecked_reservations(db, citizen_id):
+def get_unchecked_reservations(citizen_id):
     """Return query of unchecked reservations of citizen
 
     Args:
@@ -119,7 +119,7 @@ def get_unchecked_reservations(db, citizen_id):
             Reservation.checked == False)
 
 
-def get_citizen(db, citizen_id):
+def get_citizen(citizen_id):
     """Return citizen of the citizen_id
 
     Args:

@@ -8,7 +8,6 @@ import json
 
 from app.feedback import *
 from app.assistant import *
-from app.models import app, db, logger
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
 
@@ -49,11 +48,11 @@ def citizen_get_by_citizen_id(citizen_id):
         logger.error(REPORT_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(REPORT_FEEDBACK["not_registered"])
         return redirect(url_for('citizen'), 404)
 
-    person = get_citizen(db, citizen_id)
+    person = get_citizen(citizen_id)
     personal_data = person.get_dict()
     logger.info("{} - get citizen data".format(citizen_id))
     return json.dumps(personal_data, ensure_ascii=False)
@@ -84,7 +83,7 @@ def registration():
         logger.error(REGISTRATION_FEEDBACK["invalid_id"])
         return {"feedback": REGISTRATION_FEEDBACK["invalid_id"]}
 
-    if is_registered(db, citizen_id):
+    if is_registered(citizen_id):
         logger.error(REGISTRATION_FEEDBACK["registered"])
         return {"feedback": REGISTRATION_FEEDBACK["registered"]}
 
@@ -149,12 +148,12 @@ def delete_citizen_db(citizen_id):
         logger.error(DELETE_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(DELETE_FEEDBACK["not_registered"])
         return redirect(url_for('citizen'), 404)
 
     try:
-        person = get_citizen(db, citizen_id)
+        person = get_citizen(citizen_id)
         db.session.delete(person)
         db.session.query(Reservation).filter(
             Reservation.citizen_id == citizen_id).delete()
@@ -174,7 +173,7 @@ def reservation_get_by_citizen_id(citizen_id):
         logger.error(REPORT_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(REPORT_FEEDBACK["not_registered"])
         return redirect(url_for('citizen'), 404)
 
@@ -197,7 +196,7 @@ def get_reservation():
     """
     reservations = []
     for reservation in db.session.query(Reservation).all():
-        citizen_data = get_citizen(db, reservation.citizen_id).get_dict()
+        citizen_data = get_citizen(reservation.citizen_id).get_dict()
         reservation_data = reservation.get_dict()
 
         reservation_data["citizen_data"] = citizen_data
@@ -225,11 +224,11 @@ def reservation():
         logger.error(RESERVATION_FEEDBACK["invalid_id"])
         return {"feedback": RESERVATION_FEEDBACK["invalid_id"]}
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(RESERVATION_FEEDBACK["not_registered"])
         return {"feedback": RESERVATION_FEEDBACK["not_registered"]}
 
-    if is_reserved(db, citizen_id):
+    if is_reserved(citizen_id):
         logger.error(RESERVATION_FEEDBACK["double_reservation"])
         return {"feedback": RESERVATION_FEEDBACK["double_reservation"]}
 
@@ -237,7 +236,7 @@ def reservation():
         logger.error(RESERVATION_FEEDBACK["invalid_vaccine"])
         return {"feedback": RESERVATION_FEEDBACK["invalid_vaccine"]}
 
-    citizen = get_citizen(db, citizen_id)
+    citizen = get_citizen(citizen_id)
     is_valid, json_data = validate_vaccine(citizen, vaccine_name)
 
     if not is_valid:
@@ -277,16 +276,16 @@ def cancel_reservation(citizen_id):
         logger.error(CANCEL_RESERVATION_FEEDBACK["invalid_id"])
         return {"feedback": CANCEL_RESERVATION_FEEDBACK["invalid_id"]}
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(CANCEL_RESERVATION_FEEDBACK["not_registered"])
         return {"feedback": CANCEL_RESERVATION_FEEDBACK["not_registered"]}
 
-    if not is_reserved(db, citizen_id):
+    if not is_reserved(citizen_id):
         logger.error(CANCEL_RESERVATION_FEEDBACK["not_reservation"])
         return {"feedback": CANCEL_RESERVATION_FEEDBACK["not_reservation"]}
 
     try:
-        reservation = get_unchecked_reservations(db, citizen_id).first()
+        reservation = get_unchecked_reservations(citizen_id).first()
         db.session.delete(reservation)
         db.session.commit()
     except:
@@ -315,7 +314,7 @@ def update_queue():
         return {"feedback": REPORT_FEEDBACK["invalid_time_format"]}
 
     try:
-        reservation = get_unchecked_reservations(db, citizen_id).first()
+        reservation = get_unchecked_reservations(citizen_id).first()
         reservation.queue = queue
         db.session.commit()
     except:
@@ -342,7 +341,7 @@ def update_citizen_db():
         logger.error(REPORT_FEEDBACK["invalid_id"])
         return {"feedback": REPORT_FEEDBACK["invalid_id"]}
 
-    if not is_registered(db, citizen_id):
+    if not is_registered(citizen_id):
         logger.error(REPORT_FEEDBACK["not_registered"])
         return {"feedback": REPORT_FEEDBACK["not_registered"]}
 
@@ -353,12 +352,12 @@ def update_citizen_db():
     try:
         option = request.values['option']
         if (option == "walk-in"):
-            if is_reserved(db, citizen_id):
+            if is_reserved(citizen_id):
                 logger.error(REPORT_FEEDBACK["has_reservation"])
                 return {"feedback": REPORT_FEEDBACK["has_reservation"]}
 
             try:
-                citizen = get_citizen(db, citizen_id)
+                citizen = get_citizen(citizen_id)
                 is_valid, feedback = validate_vaccine(citizen, vaccine_name)
 
                 if not is_valid:
@@ -376,12 +375,12 @@ def update_citizen_db():
                 logger.error(REPORT_FEEDBACK["other"])
                 return {"feedback": REPORT_FEEDBACK["other"]}
     except:
-        if not is_reserved(db, citizen_id):
+        if not is_reserved(citizen_id):
             logger.error(REPORT_FEEDBACK["not_reservation"])
             return {"feedback": REPORT_FEEDBACK["not_reservation"]}
 
         try:
-            citizen_data = get_citizen(db, citizen_id)
+            citizen_data = get_citizen(citizen_id)
             citizen_data.vaccine_taken = [
                 *(citizen_data.vaccine_taken), vaccine_name
             ]
