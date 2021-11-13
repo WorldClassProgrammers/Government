@@ -6,9 +6,9 @@ from flasgger import Swagger
 from flasgger.utils import swag_from
 import json
 
-from feedback import *
-from assistant import *
-from models import app, db, logger
+from app.feedback import *
+from app.assistant import *
+from app.models import app, db, logger
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
 
