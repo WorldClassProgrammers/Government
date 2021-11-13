@@ -64,7 +64,7 @@ swagger_config = {
 
 swagger = Swagger(app, config=swagger_config)
 
-VACCINE_PATTERN = [
+VACCINE_SEQUENCE = [
     ["Pfizer", "Pfizer"],
     ["Astra", "Astra"],
     ["Sinopharm", "Sinopharm"],
@@ -144,7 +144,7 @@ def get_available_vaccine(vaccine_taken: list):
         list: list of available vaccine
     """
     available_vaccine = set()
-    for pattern in VACCINE_PATTERN:
+    for pattern in VACCINE_SEQUENCE:
         length = len(vaccine_taken)
         if length < len(pattern) and pattern[:length] == vaccine_taken:
             available_vaccine.add(pattern[length])
@@ -152,11 +152,11 @@ def get_available_vaccine(vaccine_taken: list):
     return sorted(list(available_vaccine))
 
 
-def parsing_date(birth_date: str):
+def parsing_date(date_str: str):
     """
     Reparse birthdate into datetime format.
     Args:
-        birth_date (str): birthdate of citizen
+        date_str (str): birthdate of citizen
     Raises:
         ValueError: invalid date format
     Returns:
@@ -164,7 +164,7 @@ def parsing_date(birth_date: str):
     """
     for fmt in ('%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
         try:
-            return datetime.strptime(birth_date, fmt)
+            return datetime.strptime(date_str, fmt)
         except ValueError:
             pass
     raise ValueError('invalid date format')
@@ -245,6 +245,18 @@ def get_citizen(citizen_id):
     """
     return db.session.query(Citizen).filter(
         Citizen.citizen_id == citizen_id).first()
+
+
+def is_vaccine_name(vaccine_name):
+    """Return True if vaccine_name is valid
+
+    Args:
+        vaccine_name (str): name of the vaccine
+
+    Returns:
+        bool: True if vaccine_name is valid, False otherwise
+    """
+    return any(vaccine_name in sublist for sublist in VACCINE_SEQUENCE)
 
 
 def validate_vaccine(citizen, vaccine_name, json_data):
@@ -425,7 +437,7 @@ def registration():
 
     try:
         data = Citizen(int(citizen_id), name, surname, birth_date, occupation,
-                       phone_number, (is_risk == "True"), address)
+                       phone_number, (is_risk == "true"), address)
         db.session.add(data)
         db.session.commit()
     except:
@@ -541,41 +553,28 @@ def reservation():
     citizen_id = request.values['citizen_id']
     site_name = request.values['site_name']
     vaccine_name = request.values['vaccine_name']
-    json_data = {
-        "citizen_id": citizen_id,
-        "site_name": site_name,
-        "vaccine_name": vaccine_name,
-        "timestamp": datetime.now(),
-        "queue": None,
-        "checked": False
-    }
-
     if not (citizen_id and site_name and vaccine_name):
-        json_data["feedback"] = RESERVATION_FEEDBACK["missing_key"]
         logger.error(RESERVATION_FEEDBACK["missing_key"])
-        return json.dumps(json_data, ensure_ascii=False)
+        return {"feedback": RESERVATION_FEEDBACK["missing_key"]}
 
     if not is_citizen_id(citizen_id):
-        json_data["feedback"] = RESERVATION_FEEDBACK["invalid_id"]
         logger.error(RESERVATION_FEEDBACK["invalid_id"])
-        return json.dumps(json_data, ensure_ascii=False)
+        return {"feedback": RESERVATION_FEEDBACK["invalid_id"]}
 
     if not is_registered(citizen_id):
-        json_data["feedback"] = RESERVATION_FEEDBACK["not_registered"]
         logger.error(RESERVATION_FEEDBACK["not_registered"])
-        return json.dumps(json_data, ensure_ascii=False)
+        return {"feedback": RESERVATION_FEEDBACK["not_registered"]}
 
     if is_reserved(citizen_id):
-        json_data["feedback"] = RESERVATION_FEEDBACK["double_reservation"]
         logger.error(RESERVATION_FEEDBACK["double_reservation"])
-        return json.dumps(json_data, ensure_ascii=False)
+        return {"feedback": RESERVATION_FEEDBACK["double_reservation"]}
 
-    if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
+    if not is_vaccine_name(vaccine_name):
         logger.error(RESERVATION_FEEDBACK["invalid_vaccine"])
         return {"feedback": RESERVATION_FEEDBACK["invalid_vaccine"]}
 
     citizen = get_citizen(citizen_id)
-    is_valid, json_data = validate_vaccine(citizen, vaccine_name, json_data)
+    is_valid, json_data = validate_vaccine(citizen, vaccine_name, None)
 
     if not is_valid:
         logger.error("{} - {}".format(citizen_id, json_data['feedback']))
@@ -683,7 +682,7 @@ def update_citizen_db():
         logger.error(REPORT_FEEDBACK["not_registered"])
         return {"feedback": REPORT_FEEDBACK["not_registered"]}
 
-    if not vaccine_name in ["Pfizer", "Astra", "Sinopharm", "Sinovac"]:
+    if not is_vaccine_name(vaccine_name):
         logger.error(REPORT_FEEDBACK["invalid_vaccine"])
         return {"feedback": REPORT_FEEDBACK["invalid_vaccine"]}
 
