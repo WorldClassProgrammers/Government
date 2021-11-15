@@ -49,7 +49,7 @@
 
         <p>[POST] <a href="/registration">/registration</a> - To register citizen information</p>
         <ul>
-            <li>All 6 form data parameters are required! [citizen_id, name, surname, birth_date, occupation, address]
+            <li>All 8 form data parameters are required! [citizen_id, name, surname, birth_date, occupation, phone_number, is_risk, address]
             </li>
             <li>citizen_id: must be unique</li>
             <li>citizen_id: need to be number of 13 digits</li>
@@ -64,7 +64,7 @@
             <li>Redirect to <a href="/database/citizen"> Citizen Database</a></li>
         </ul>
 
-        <p>[DELETE] <a href="/registration/<citizen_id>">/registration/[citizen_id]</a> - Delete his citizen data and all of his reservations</p>
+        <p>[DELETE] <a href="/registration/<citizen_id>">/registration/[citizen_id]</a> - Delete this citizen data and all of the reservations</p>
         <ul>
             <li>Error only show for admin (logging)</li>
             <li>Redirect to <a href="/database/citizen"> Citizen Database</a></li>

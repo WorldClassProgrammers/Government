@@ -37,9 +37,12 @@ responses:
             address:
               type: string
               example: address
-            id: 
+            phone_number:
               type: string
-              example: id
+              example: "0980000000"
+            is_rick:
+              type: string
+              example: "False"
             vaccine-taken:
               type: string
               example: [] 

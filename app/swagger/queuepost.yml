@@ -8,7 +8,7 @@ produces:
 parameters:
   - name: "citizen_id"
     in: formData
-    description: "citizen id must be a unique combination of 13 digits number and registerd"
+    description: "citizen id must be a unique combination of 13 digits number and registered"
     type: "string"
     required: true
   - name: "queue"
