@@ -12,6 +12,14 @@
     <title>API Usage</title>
 </head>
 
+<style>
+    .code {
+        background-color: #00000018;
+        border-radius: 4px;
+        padding: 16px;
+    }
+</style>
+
 <body>
     <div class="container">
         <div class="w-100 my-3" style="text-align: center;">
@@ -20,7 +28,108 @@
         </div>
         <br>
         <p>Here is the Rule:</p>
-        <p>[POST] is to reserve vaccine reservation</p>
+
+        <p>[GET] <a href="/reservation/<citizen_id>">/reservation/[citizen_id]</a> - Return a reservation (citizen) data
+            as json</p>
+        <ul>
+            <li>Sample Output:</li>
+            <p class="code">
+                [
+                <br>&emsp; {
+                <br>&emsp; "citizen_id": "1234567890123",
+                <br>&emsp; "site_name": "ABC",
+                <br>&emsp; "vaccine_name": "Pfizer",
+                <br>&emsp; "timestamp": "2021-11-12 00:43:15.399941",
+                <br>&emsp; "queue": "2022-02-03 10:11:01",
+                <br>&emsp; "checked": "True"
+                <br>&emsp; },
+                <br>&emsp; {
+                <br>&emsp; "citizen_id": "1234567890123",
+                <br>&emsp; "site_name": "ABC",
+                <br>&emsp; "vaccine_name": "Pfizer",
+                <br>&emsp; "timestamp": "2021-11-12 01:23:15.182224",
+                <br>&emsp; "queue": "None",
+                <br>&emsp; "checked": "False"
+                <br>&emsp; }
+                <br>&emsp; ...
+                <br>]
+            </p>
+        </ul>
+
+        <p>[GET] <a href="/reservations">/reservations</a> - Return all reservations data with it owner
+            as json</p>
+        <ul>
+            <li>Sample Output:</li>
+            <p class="code">
+                [
+                <br>&emsp; {
+                <br>&emsp; "citizen_id": "1234567890123",
+                <br>&emsp; "site_name": "ABC",
+                <br>&emsp; "vaccine_name": "Pfizer",
+                <br>&emsp; "timestamp": "2021-11-12 00:43:15.399941",
+                <br>&emsp; "queue": "2022-02-03 10:11:01",
+                <br>&emsp; "checked": "True",
+                <br>&emsp; "citizen_data":
+                <br>&emsp; &emsp; {
+                <br>&emsp; &emsp; &emsp; "citizen_id":
+                <br>&emsp; &emsp; &emsp; "1234567890123",
+                <br>&emsp; &emsp; &emsp; "name": "adem",
+                <br>&emsp; &emsp; &emsp; "surname": "fux",
+                <br>&emsp; &emsp; &emsp; "birth_date": "1890-03-12",
+                <br>&emsp; &emsp; &emsp; "occupation": "student",
+                <br>&emsp; &emsp; &emsp; "phone_number": "0987654321",
+                <br>&emsp; &emsp; &emsp; "is_risk": "True",
+                <br>&emsp; &emsp; &emsp; "address": "bkk",
+                <br>&emsp; &emsp; &emsp; "vaccine_taken": "['Pfizer']"
+                <br>&emsp; &emsp; }
+                <br>&emsp; },
+                <br>&emsp; {
+                <br>&emsp; "citizen_id": "1234567890123",
+                <br>&emsp; "site_name": "ABC",
+                <br>&emsp; "vaccine_name": "Pfizer",
+                <br>&emsp; "timestamp": "2021-11-12 01:23:15.182224",
+                <br>&emsp; "queue": "None",
+                <br>&emsp; "checked": "False",
+                <br>&emsp; "citizen_data":
+                <br>&emsp; &emsp; {
+                <br>&emsp; &emsp; &emsp; "citizen_id": "1234567890123",
+                <br>&emsp; &emsp; &emsp; "name": "adem",
+                <br>&emsp; &emsp; &emsp; "surname": "fux",
+                <br>&emsp; &emsp; &emsp; "birth_date": "1890-03-12",
+                <br>&emsp; &emsp; &emsp; "occupation": "student",
+                <br>&emsp; &emsp; &emsp; "phone_number": "0987654321",
+                <br>&emsp; &emsp; &emsp; "is_risk": "True",
+                <br>&emsp; &emsp; &emsp; "address": "bkk",
+                <br>&emsp; &emsp; &emsp; "vaccine_taken": "['Pfizer']"
+                <br>&emsp; &emsp; }
+                <br>&emsp; },
+                <br>&emsp; {
+                <br>&emsp; "citizen_id":
+                <br>&emsp; "1234567890321",
+                <br>&emsp; "site_name": "ABC",
+                <br>&emsp; "vaccine_name": "Pfizer",
+                <br>&emsp; "timestamp": "2021-11-12 01:30:07.478417",
+                <br>&emsp; "queue": "None",
+                <br>&emsp; "checked": "False",
+                <br>&emsp; "citizen_data":
+                <br>&emsp; &emsp; {
+                <br>&emsp; &emsp; &emsp; "citizen_id": "1234567890321",
+                <br>&emsp; &emsp; &emsp; "name": "มารุณี",
+                <br>&emsp; &emsp; &emsp; "surname": "ทองแท่ง",
+                <br>&emsp; &emsp; &emsp; "birth_date": "1999-11-01",
+                <br>&emsp; &emsp; &emsp; "occupation": "นิสิต",
+                <br>&emsp; &emsp; &emsp; "phone_number": "0900900990",
+                <br>&emsp; &emsp; &emsp; "is_risk": "False",
+                <br>&emsp; &emsp; &emsp; "address": "สักที่ในโลก 199-e-3",
+                <br>&emsp; &emsp; &emsp; "vaccine_taken": "['Astra']"
+                <br>&emsp; &emsp; }
+                <br>&emsp; },
+                <br>&emsp; ...
+                <br>]
+            </p>
+        </ul>
+
+        <p>[POST] <a href="/reservation">/reservation</a> - To reserve vaccine reservation</p>
         <ul>
             <li>All 3 form data parameters are required! [citizen_id, site_name, vaccine_name]</li>
             <li>citizen_id: need to be number of 13 digits</li>
@@ -29,7 +138,7 @@
             <li>vaccine_name: need to follow <a href="/">vaccination orders</a></li>
         </ul>
         <br>
-        <p>[DELETE] is to cancel vaccine reservation</p>
+        <p>[DELETE] <a href="/reservation/<citizen_id>">/reservation/[citizen_id]</a> - To cancel the citizen unchecked vaccine reservation</p>
         <ul>
             <li>Only 1 key is required! [citizen_id]</li>
             <li>citizen_id: need to be number of 13 digits</li>

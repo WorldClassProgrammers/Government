@@ -11,9 +11,6 @@ flask-sqlalchemy = "*"
 gunicorn = "*"
 python-dotenv = "*"
 flasgger = "*"
-flask-marshmallow = "*"
-marshmallow = "*"
-marshmallow-sqlalchemy = "*"
 flask-cors = "*"
 
 [dev-packages]

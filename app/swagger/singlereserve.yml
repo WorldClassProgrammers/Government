@@ -1,0 +1,55 @@
+tags:
+  - name: Reservation
+summary: Return reservations of each citizen
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - name: "citizen_id"
+    in: path
+    description: "citizen id must be a unique combination of 13 digits number"
+    type: "string"
+    required: true
+responses:
+  200:
+    description: reservation information
+    schema:
+      type: array
+      items:
+          type: object
+          properties:
+            citizen_id:
+              type: string
+              description: The citizen ID.
+            site_name:
+              type: string
+              description: The reservation site name.
+            vaccine_name:
+              type: string
+              description: The vaccine name.
+            timestamp:
+              type: string
+              description: The time reservation was send
+            queue:
+              type: string
+            checked:
+              type: string
+            citizen_data:
+              type: object
+              properties:
+                citizen_id:
+                  type: string
+                name:
+                  type: string
+                surname:
+                  type: string
+                birth_date:
+                  type: string
+                  example: "DD/MM/YYYY"
+                occupation:
+                  type: string
+                address:
+                  type: string
+  400:
+    description: Bad request

@@ -12,6 +12,14 @@
     <title>API Usage</title>
 </head>
 
+<style>
+    .code {
+        background-color: #00000018;
+        border-radius: 4px;
+        padding: 16px;
+    }
+</style>
+
 <body>
     <div class="container">
         <div class="w-100 my-3" style="text-align: center;">
@@ -20,14 +28,46 @@
         </div>
         <br>
         <p>Here is the Rule:</p>
-        <p>[POST]</p>
+
+        <p>[GET] <a href="/registration/<citizen_id>">/registration/[citizen_id]</a> - Return a registration (citizen) data as json</p>
         <ul>
-            <li>All 6 form data parameters are required! [citizen_id, name, surname, birth_date, occupation, address]</li>
+            <li>Sample Output:</li>
+            <p class="code">
+                {
+                <br>&emsp; "citizen_id": "1234567890321",
+                <br>&emsp; "name": "มารุณี",
+                <br>&emsp; "surname": "ทองแท่ง",
+                <br>&emsp; "birth_date": "1999-11-01",
+                <br>&emsp; "occupation":"นิสิต",
+                <br>&emsp; "phone_number": "0900900990",
+                <br>&emsp; "is_risk": "False",
+                <br>&emsp; "address": "สักที่ในโลก 199-e-3",
+                <br>&emsp; "vaccine_taken": "['Astra']"
+                <br>}
+            </p>
+        </ul>
+
+        <p>[POST] <a href="/registration">/registration</a> - To register citizen information</p>
+        <ul>
+            <li>All 8 form data parameters are required! [citizen_id, name, surname, birth_date, occupation, phone_number, is_risk, address]
+            </li>
             <li>citizen_id: must be unique</li>
             <li>citizen_id: need to be number of 13 digits</li>
             <li>birth_date: need to be in one of available formats ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y',
                 '%Y/%m/%d']</li>
             <li>birth_date: citizen must be at least 12 years old</li>
+        </ul>
+
+        <p>[DELETE] <a href="/registration">/registration</a> - Delete all citizen data and all of his reservations</p>
+        <ul>
+            <li>Error only show for admin (logging)</li>
+            <li>Redirect to <a href="/database/citizen"> Citizen Database</a></li>
+        </ul>
+
+        <p>[DELETE] <a href="/registration/<citizen_id>">/registration/[citizen_id]</a> - Delete this citizen data and all of the reservations</p>
+        <ul>
+            <li>Error only show for admin (logging)</li>
+            <li>Redirect to <a href="/database/citizen"> Citizen Database</a></li>
         </ul>
     </div>
 

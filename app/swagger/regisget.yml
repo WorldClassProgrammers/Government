@@ -24,7 +24,15 @@ responses:
             example: "DD/MM/YYYY"
           occupation:
             type: string
+          phone_number:
+            type: string
+            example: "0980000000"
+          is_rick:
+            type: string
+            example: "False"
           address:
+            type: string
+          vaccine_taken:
             type: string
   400:
     description: Bad request

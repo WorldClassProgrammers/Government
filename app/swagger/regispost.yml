@@ -31,6 +31,16 @@ parameters:
     description: "occupation of citizen"
     type: "string"
     required: true
+  - name: "phone_number"
+    in: formData
+    description: "phone number of citizen"
+    type: "string"
+    required: true
+  - name: "is_risk"
+    in: formData
+    description: "inform that this citizen is in the risk category or not can either be True or False"
+    type: "string"
+    required: true
   - name: "address"
     in: formData
     description: "current address of citizen"
@@ -42,6 +52,33 @@ responses:
     schema:
       type: object
       properties:
+        citizen_id:
+          type: string
+          example: 1111111111111
+        name:
+          type: string
+          example: name
+        surname:
+          type: string
+          example: surname
+        birth_date:
+          type: string
+          example: xxxx-xx-xx
+        occupation:
+          type: string
+          example: occupation
+        address:
+          type: string
+          example: address
+        phone_number:
+          type: string
+          example: "0980000000"
+        is_rick:
+          type: string
+          example: "False"
+        vaccine-taken:
+          type: string
+          example: [] 
         feedback: 
           type: "string"
           example: "registration success!"
