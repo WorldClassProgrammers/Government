@@ -1,0 +1,12 @@
+tags:
+  - name: Register
+summary: Delete all citizen's information from database
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: Return html template display 0 citizen
+  400:
+    description: Bad request
