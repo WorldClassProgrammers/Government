@@ -332,8 +332,9 @@ def update_queue():
 def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
-
-    if not (citizen_id and vaccine_name):
+    option = request.values['option']
+    
+    if not (citizen_id and vaccine_name and option):
         logger.error(REPORT_FEEDBACK["missing_key"])
         return {"feedback": REPORT_FEEDBACK["missing_key"]}
 
@@ -349,43 +350,32 @@ def update_citizen_db():
         logger.error(REPORT_FEEDBACK["invalid_vaccine"])
         return {"feedback": REPORT_FEEDBACK["invalid_vaccine"]}
 
-    try:
-        option = request.values['option']
-        if (option == "walk-in"):
-            if is_reserved(citizen_id):
-                logger.error(REPORT_FEEDBACK["has_reservation"])
-                return {"feedback": REPORT_FEEDBACK["has_reservation"]}
+    if (option == "walk-in"):
+        if is_reserved(citizen_id):
+            logger.error(REPORT_FEEDBACK["has_reservation"])
+            return {"feedback": REPORT_FEEDBACK["has_reservation"]}
+        try:
+            citizen = get_citizen(citizen_id)
+            is_valid, feedback = validate_vaccine(citizen, vaccine_name)
+            if not is_valid:
+                logger.error("{} - {}".format(citizen_id, feedback['feedback']))
+                return feedback
+            citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
+            db.session.commit()
+        except:
+            db.session.rollback()
+            logger.error(REPORT_FEEDBACK["other"])
+            return {"feedback": REPORT_FEEDBACK["other"]}
 
-            try:
-                citizen = get_citizen(citizen_id)
-                is_valid, feedback = validate_vaccine(citizen, vaccine_name)
-
-                if not is_valid:
-                    logger.error("{} - {}".format(citizen_id,
-                                                  feedback['feedback']))
-                    return feedback
-
-                citizen.vaccine_taken = [
-                    *(citizen.vaccine_taken), vaccine_name
-                ]
-                db.session.commit()
-
-            except:
-                db.session.rollback()
-                logger.error(REPORT_FEEDBACK["other"])
-                return {"feedback": REPORT_FEEDBACK["other"]}
-    except:
+    elif (option == "reserve"):
         if not is_reserved(citizen_id):
             logger.error(REPORT_FEEDBACK["not_reservation"])
             return {"feedback": REPORT_FEEDBACK["not_reservation"]}
 
         try:
             citizen_data = get_citizen(citizen_id)
-            citizen_data.vaccine_taken = [
-                *(citizen_data.vaccine_taken), vaccine_name
-            ]
-            reservation_data = get_unchecked_reservations(
-                db, citizen_id).filter(
+            citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+            reservation_data = get_unchecked_reservations(citizen_id).filter(
                     Reservation.vaccine_name == vaccine_name).first()
             reservation_data.checked = True
             db.session.commit()
@@ -394,10 +384,13 @@ def update_citizen_db():
             logger.error(REPORT_FEEDBACK["not_match_vaccine"])
             return {"feedback": REPORT_FEEDBACK["not_match_vaccine"]}
 
-    logger.info("{} - updated citizen - vaccine name: {}".format(
-        citizen_id, vaccine_name))
-    return {"feedback": REPORT_FEEDBACK["success"]}
+        logger.info("{} - updated citizen - vaccine name: {}".format(
+            citizen_id, vaccine_name))
+        return {"feedback": REPORT_FEEDBACK["success"]}
 
+    else:
+        logger.error(REPORT_FEEDBACK["invalid_option"])
+        return {"feedback": REPORT_FEEDBACK["invalid_option"]}
 
 @app.route('/')
 @cross_origin()
