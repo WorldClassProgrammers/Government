@@ -118,25 +118,6 @@ def registration():
     }
 
 
-@app.route('/registration', methods=['DELETE'])
-@cross_origin()
-@swag_from("swagger/citizendel.yml")
-def reset_citizen_db():
-    """
-    Reset citizen database.
-    """
-    try:
-        db.session.query(Citizen).delete()
-        db.session.query(Reservation).delete()
-        db.session.commit()
-    except:
-        db.session.rollback()
-        logger.error(DELETE_FEEDBACK["fail_reset"])
-
-    logger.info(DELETE_FEEDBACK["success_reset"])
-    return redirect(url_for('citizen'))
-
-
 @app.route('/registration/<citizen_id>', methods=['DELETE'])
 @cross_origin()
 @swag_from("swagger/citizendel.yml")
@@ -333,7 +314,7 @@ def update_citizen_db():
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
     option = request.values['option']
-    
+
     if not (citizen_id and vaccine_name and option):
         logger.error(REPORT_FEEDBACK["missing_key"])
         return {"feedback": REPORT_FEEDBACK["missing_key"]}
@@ -358,7 +339,8 @@ def update_citizen_db():
             citizen = get_citizen(citizen_id)
             is_valid, feedback = validate_vaccine(citizen, vaccine_name)
             if not is_valid:
-                logger.error("{} - {}".format(citizen_id, feedback['feedback']))
+                logger.error("{} - {}".format(citizen_id,
+                                              feedback['feedback']))
                 return feedback
             citizen.vaccine_taken = [*(citizen.vaccine_taken), vaccine_name]
             db.session.commit()
@@ -367,6 +349,10 @@ def update_citizen_db():
             logger.error(REPORT_FEEDBACK["other"])
             return {"feedback": REPORT_FEEDBACK["other"]}
 
+        logger.info("{} - updated citizen - vaccine name: {}".format(
+            citizen_id, vaccine_name))
+        return {"feedback": REPORT_FEEDBACK["success"]}
+
     elif (option == "reserve"):
         if not is_reserved(citizen_id):
             logger.error(REPORT_FEEDBACK["not_reservation"])
@@ -374,9 +360,11 @@ def update_citizen_db():
 
         try:
             citizen_data = get_citizen(citizen_id)
-            citizen_data.vaccine_taken = [*(citizen_data.vaccine_taken), vaccine_name]
+            citizen_data.vaccine_taken = [
+                *(citizen_data.vaccine_taken), vaccine_name
+            ]
             reservation_data = get_unchecked_reservations(citizen_id).filter(
-                    Reservation.vaccine_name == vaccine_name).first()
+                Reservation.vaccine_name == vaccine_name).first()
             reservation_data.checked = True
             db.session.commit()
         except:
@@ -391,6 +379,7 @@ def update_citizen_db():
     else:
         logger.error(REPORT_FEEDBACK["invalid_option"])
         return {"feedback": REPORT_FEEDBACK["invalid_option"]}
+
 
 @app.route('/')
 @cross_origin()
