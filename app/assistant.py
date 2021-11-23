@@ -1,5 +1,5 @@
 from datetime import datetime
-from models import *
+from app.models import *
 
 VACCINE_SEQUENCE = [
     ["Pfizer", "Pfizer"],

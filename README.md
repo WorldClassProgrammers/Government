@@ -23,6 +23,8 @@ These additional packages need to be installed too. All of them are listed in th
 | SQLAlchemy       | 1.4.25                | Database Abstraction Library.                                                                           |
 | flasgger         | 0.9.5                 | Auto-API-Document Generator.                                                                            |
 | flask-swagger    | 0.2.14                | Extract swagger specs from your flask project.                                                          |
+| Flask-JWT-Extended         | 4.3.1                | JWT Authentication                                                                            |
+| Werkzeug    | 2.0.2                | A comprehensive WSGI web application library.                                                          |
 
 Create local postgres database named 'government'
 
