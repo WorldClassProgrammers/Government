@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 import logging
@@ -126,3 +127,22 @@ class Reservation(db.Model):
             "queue": str(self.queue),
             "checked": str(self.checked)
         }
+
+
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(200), unique=True)
+    password = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean)
+    has_privilege = db.Column(db.Boolean) # need to change variable name later
+
+    # def __init__(self, username, password, is_admin=False, has_privilege=True):
+    #     self.username = username
+    #     hashed_password = generate_password_hash(password, method='sha256')
+    #     self.password = hashed_password
+    #     self.is_admin = is_admin
+    #     self.has_privilege = has_privilege
+
+    #     logger.info(
+    #     'created authenticated user: {} - is-admin: {} - has-privilege: {}'
+    #     .format(self.username, self.is_admin, self.has_privilege))
