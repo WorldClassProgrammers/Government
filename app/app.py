@@ -12,8 +12,8 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 
-from feedback import *
-from assistant import *
+from app.feedback import *
+from app.assistant import *
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
