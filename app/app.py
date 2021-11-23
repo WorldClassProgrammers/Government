@@ -16,7 +16,6 @@ from app.feedback import *
 from app.assistant import *
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 jwt = JWTManager(app)
 
 swagger_config = {
