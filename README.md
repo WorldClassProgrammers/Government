@@ -82,7 +82,7 @@ $ pipenv lock
 $ pip freeze > requirements.txt
 ```
 
-set up datatabase
+set up database
 
 ```
 $ cd app
@@ -90,7 +90,7 @@ $ python
 ```
 
 ```python shell
-> from app import db
+> from models import db
 
 # reset database
 > db.drop_all()

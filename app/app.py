@@ -1,16 +1,13 @@
 from flask import render_template, request, redirect, url_for, make_response, jsonify
-from flask_cors import cross_origin
-from string import Template
-from psycopg2.errors import UniqueViolation
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-from flasgger import Swagger
+from psycopg2.errors import UniqueViolation
+from flask_cors import cross_origin
 from flasgger.utils import swag_from
+from flasgger import Swagger
+from datetime import datetime
+from string import Template
 import json, os
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager
 
 from app.feedback import *
 from app.assistant import *

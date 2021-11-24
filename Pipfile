@@ -12,6 +12,8 @@ gunicorn = "*"
 python-dotenv = "*"
 flasgger = "*"
 flask-cors = "*"
+werkzeug = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
