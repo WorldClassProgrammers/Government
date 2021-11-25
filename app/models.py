@@ -129,12 +129,12 @@ class Reservation(db.Model):
         }
 
 
-class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200), unique=True)
-    password = db.Column(db.String(200))
-    is_admin = db.Column(db.Boolean)
-    has_privilege = db.Column(db.Boolean) # need to change variable name later
+# class Users(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     username = db.Column(db.String(200), unique=True)
+#     password = db.Column(db.String(200))
+#     is_admin = db.Column(db.Boolean)
+#     has_privilege = db.Column(db.Boolean) # need to change variable name later
 
     # def __init__(self, username, password, is_admin=False, has_privilege=True):
     #     self.username = username
