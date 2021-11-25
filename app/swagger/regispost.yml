@@ -38,7 +38,7 @@ parameters:
     required: true
   - name: "is_risk"
     in: formData
-    description: "inform that this citizen is in the risk category or not can either be True or False"
+    description: "inform that this citizen is in the risk category or not can either be 'true' or 'false'"
     type: "string"
     required: true
   - name: "address"

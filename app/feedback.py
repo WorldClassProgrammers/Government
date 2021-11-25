@@ -39,6 +39,7 @@ REPORT_FEEDBACK = {
     'has_reservation':      'report failed: before walk-in, citizen need to cancel other reservation',
     'not_reservation':      'report failed: there is no reservation for this citizen',
     'not_match_vaccine':    'report failed: vaccine_name not match reservation',
+    'invalid_option':       'report failed: option need to be neither "reserve" or "walk-in"',
     'other':                'report failed: something go wrong, please contact admin'
 }
 

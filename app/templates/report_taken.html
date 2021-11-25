@@ -23,13 +23,13 @@
         <p>[POST] <a href="/report_taken">/report_taken</a> - To report vaccine taken</p>
         <ul>
             <li>All 3 form data parameters are required! [citizen_id, vaccine_name, option]</li>
-            <li>One optional data parameter [option]</li>
             <li>citizen_id: need to be number of 13 digits</li>
             <li>citizen_id: must have been registered</li>
             <li>vaccine_name: need to be one of available vaccine [Pfizer, Astra, Sinofarm, or Sinovac]</li>
             <li>vaccine_name: [for citizen with reservation] need to match the reservation</li>
             <li>vaccine_name: [for walk-in citizen] need to follow <a href="/">vaccination orders</a></li>
-            <li>option: option = "walk-in" for citizen with no reservation</li>
+            <li>option: option = "reserve" for citizen with reservation</li>
+            <li>option: option = "walk-in" for citizen without reservation</li>
         </ul>
     </div>
 
