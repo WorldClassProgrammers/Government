@@ -13,8 +13,8 @@ from app.feedback import *
 from app.assistant import *
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
-# app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-app.config['SECRET_KEY'] = "DUMMY_KEY_IS_NO_SECRET"
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+# app.config['SECRET_KEY'] = "DUMMY_KEY_IS_NOT_A_SECRET"
 jwt = JWTManager(app)
 
 swagger_config = {
