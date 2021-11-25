@@ -5,6 +5,7 @@ out/
 .DS_[Ss]tore
 *.log
 .env
+/env
 
 # Python files
 __pycache__

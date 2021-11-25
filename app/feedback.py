@@ -50,3 +50,17 @@ DELETE_FEEDBACK = {
     'invalid_id':           'delete failed: invalid citizen ID',
     'not_registered':       'delete failed: citizen ID is not registered'
 }
+
+REGISTER_USER_FEEDBACK = {
+    "successful_registration" : "new user created successfully",
+    "failed_registration" : "registration failed: unable to register a new user",
+    "duplicated_registration" : "registration failed: user already exists"
+}
+
+# LOGIN_FEEDBACK = {
+
+# }
+
+AUTHENTICATION_FEEDBACK = {
+    "unauthenticated" : "no permissions allowed for this user"
+}

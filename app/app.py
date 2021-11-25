@@ -1,15 +1,21 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, make_response, jsonify
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from werkzeug.security import generate_password_hash, check_password_hash
+from psycopg2.errors import UniqueViolation
 from flask_cors import cross_origin
-from string import Template
-from datetime import datetime
-from flasgger import Swagger
 from flasgger.utils import swag_from
-import json
+from flasgger import Swagger
+from datetime import datetime
+from string import Template
+import json, os
 
 from app.feedback import *
 from app.assistant import *
 
 app.config["SWAGGER"] = {"title": "WCG-API", "universion": 1}
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+# app.config['SECRET_KEY'] = "DUMMY_KEY_IS_NOT_A_SECRET"
+jwt = JWTManager(app)
 
 swagger_config = {
     "headers": [],
@@ -60,11 +66,16 @@ def citizen_get_by_citizen_id(citizen_id):
 
 @app.route('/registration', methods=['POST'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/regispost.yml")
 def registration():
     """
     Accept and validate registration information.
     """
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.has_privilege and not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     citizen_id = request.values['citizen_id']
     name = request.values['name']
     surname = request.values['surname']
@@ -93,6 +104,7 @@ def registration():
             logger.error(REGISTRATION_FEEDBACK["invalid_age"])
             return {"feedback": REGISTRATION_FEEDBACK["invalid_age"]}
     except ValueError:
+        
         logger.error(REGISTRATION_FEEDBACK["invalid_birthdate"])
         return {"feedback": REGISTRATION_FEEDBACK["invalid_birthdate"]}
 
@@ -118,13 +130,42 @@ def registration():
     }
 
 
+@app.route('/registration', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+@swag_from("swagger/citizendel.yml")
+def reset_citizen_db():
+    """
+    Reset citizen database.
+    """
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
+    try:
+        db.session.query(Citizen).delete()
+        db.session.query(Reservation).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        logger.error(DELETE_FEEDBACK["fail_reset"])
+
+    logger.info(DELETE_FEEDBACK["success_reset"])
+    return redirect(url_for('citizen'))
+
+
 @app.route('/registration/<citizen_id>', methods=['DELETE'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/citizendel.yml")
 def delete_citizen_db(citizen_id):
     """
     Delete a citizen data.
     """
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     if not is_citizen_id(citizen_id):
         logger.error(DELETE_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
@@ -189,11 +230,16 @@ def get_reservation():
 
 @app.route('/reservation', methods=['POST'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/reservepost.yml")
 def reservation():
     """
     Add reservation data to the database
     """
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.has_privilege and not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     citizen_id = request.values['citizen_id']
     site_name = request.values['site_name']
     vaccine_name = request.values['vaccine_name']
@@ -244,11 +290,16 @@ def reservation():
 
 @app.route('/reservation/<citizen_id>', methods=['DELETE'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/reservedel.yml")
 def cancel_reservation(citizen_id):
     """
     Cancel reservation and remove it from the database.
     """
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.has_privilege and not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     if not (citizen_id):
         logger.error(CANCEL_RESERVATION_FEEDBACK["missing_key"])
         return {"feedback": CANCEL_RESERVATION_FEEDBACK["missing_key"]}
@@ -280,8 +331,13 @@ def cancel_reservation(citizen_id):
 
 @app.route('/queue_report', methods=['POST'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/queuepost.yml")
 def update_queue():
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.has_privilege and not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     citizen_id = request.values['citizen_id']
     queue = request.values['queue']
 
@@ -309,8 +365,13 @@ def update_queue():
 
 @app.route('/report_taken', methods=['POST'])
 @cross_origin()
+@jwt_required()
 @swag_from("swagger/reportpost.yml")
 def update_citizen_db():
+    user = Users.query.filter_by(username=get_jwt_identity()).first()
+    if not user.has_privilege and not user.is_admin:
+        return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
+
     citizen_id = request.values['citizen_id']
     vaccine_name = request.values['vaccine_name']
     option = request.values['option']
@@ -379,6 +440,46 @@ def update_citizen_db():
     else:
         logger.error(REPORT_FEEDBACK["invalid_option"])
         return {"feedback": REPORT_FEEDBACK["invalid_option"]}
+
+@app.route('/register_user', methods=['POST'])
+@cross_origin()
+def register_user():
+    data = request.values
+    feedback = ""
+    try:
+        hashed_password = generate_password_hash(data['password'], method='sha256')
+        new_user = Users(username=data['username'], password=hashed_password, is_admin=False, has_privilege=True) 
+
+        db.session.add(new_user)
+        db.session.commit()
+        feedback = REGISTER_USER_FEEDBACK["successful_registration"]
+        return json.dumps(feedback, ensure_ascii=False), 201
+    except Exception as e:
+        if isinstance(e.orig, UniqueViolation):
+            feedback = REGISTER_USER_FEEDBACK["duplicated_registration"]
+        else:
+            feedback = REGISTER_USER_FEEDBACK["failed_registration"]
+        db.session.rollback()
+        logger.error(feedback)
+        return {"feedback": feedback}
+
+
+@app.route('/login', methods=['POST'])  
+def login_user(): 
+    print("ffp")
+    auth = request.authorization 
+    print("bar")  
+
+    if not auth or not auth.username or not auth.password:  
+        return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})    
+
+    user = Users.query.filter_by(username=auth.username).first()   
+        
+    if check_password_hash(user.password, auth.password):  
+        access_token = create_access_token(identity=auth.username)
+        return jsonify(access_token=access_token)
+
+    return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
 
 
 @app.route('/')
