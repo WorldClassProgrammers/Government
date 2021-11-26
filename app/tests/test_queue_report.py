@@ -2,7 +2,7 @@ import unittest
 import requests
 from datetime import datetime
 
-URL = "https://wcg-apis.herokuapp.com/"
+URL = "https://wcg-apis-test.herokuapp.com/"
 
 
 class QueueReportApiTest(unittest.TestCase):
@@ -59,6 +59,13 @@ class QueueReportApiTest(unittest.TestCase):
         date = str(year) + "-11-16 09:00:00.0"
         response = requests.post(url=endpoint, data={"citizen_id": 8888888888751, "queue": date})
         self.assertIn(b'couldn\'t find valid reservation', response.content)
+
+    def test_get_queue_report_document(self):
+        """Test get document for queue report api"""
+        endpoint = URL + "document"
+        response = requests.get(endpoint+"/queue_report")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'To report for a vaccine reservation', response.content)
 
     def tearDown(self):
         """Delete registration and reservation from database"""

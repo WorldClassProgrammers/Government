@@ -2,7 +2,7 @@ import unittest
 import requests
 from datetime import datetime
 
-URL = "https://wcg-apis.herokuapp.com/"
+URL = "https://wcg-apis-test.herokuapp.com/"
 
 
 class RegistrationApiTest(unittest.TestCase):
@@ -117,22 +117,55 @@ class RegistrationApiTest(unittest.TestCase):
         """Test deleting a registration"""
         endpoint = URL + "registration"
         requests.post(url=endpoint, data={"citizen_id": 8888888888888,
-                                                     "name": "John",
-                                                     "surname": "Doe",
-                                                     "birth_date": "15 Aug 2002",
-                                                     "occupation": "Student",
-                                                     "address": "Bangkok",
-                                                     "is_risk": False,
-                                                     "phone_number": "0888775991"})
-        response = requests.delete(url=endpoint, data={"citizen_id": 8888888888888,
-                                                       "name": "John",
-                                                       "surname": "Doe",
-                                                       "birth_date": "15 Aug 2002",
-                                                       "occupation": "Student",
-                                                       "address": "Bangkok",
-                                                       "is_risk": False,
-                                                       "phone_number": "0888775991"})
+                                          "name": "John",
+                                          "surname": "Doe",
+                                          "birth_date": "15 Aug 2002",
+                                          "occupation": "Student",
+                                          "address": "Bangkok",
+                                          "is_risk": False,
+                                          "phone_number": "0888775991"})
+        response = requests.delete(endpoint+"/8888888888888")
         self.assertEqual(200, response.status_code)
+
+    def test_get_specific_citizen_detail(self):
+        """Test get a detail for a specified citizen id"""
+        endpoint = URL + "registration"
+        requests.post(url=endpoint, data={"citizen_id": 8888888888888,
+                                          "name": "John",
+                                          "surname": "Doe",
+                                          "birth_date": "15 Aug 2002",
+                                          "occupation": "Student",
+                                          "address": "Bangkok",
+                                          "is_risk": False,
+                                          "phone_number": "0888775991"})
+        response = requests.get(endpoint+"/8888888888888")
+        requests.delete(endpoint+"/8888888888888")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'John', response.content)
+        self.assertIn(b'Doe', response.content)
+        self.assertIn(b'0888775991', response.content)
+
+    def test_get_registration_document(self):
+        """Test get document for registration api"""
+        endpoint = URL + "document"
+        response = requests.get(endpoint+"/registration")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Return a registration (citizen) data as json', response.content)
+        self.assertIn(b'To register citizen information', response.content)
+        self.assertIn(b'Delete this citizen data and all of the reservations', response.content)
+
+    def test_get_registration_database(self):
+        """Test get registration database"""
+        endpoint = URL + "database"
+        response = requests.get(endpoint+"/citizen")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Citizen', response.content)
+        self.assertIn(b'Current database has', response.content)
+
+    def tearDown(self):
+        """Delete registration and reservation from database"""
+        endpoint = URL + "registration/8888888888888"
+        requests.delete(url=endpoint)
 
 
 if __name__ == '__main__':

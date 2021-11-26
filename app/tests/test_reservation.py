@@ -2,7 +2,7 @@ import unittest
 import requests
 from datetime import datetime
 
-URL = "https://wcg-apis.herokuapp.com/"
+URL = "https://wcg-apis-test.herokuapp.com/"
 
 
 class ReservationApiTest(unittest.TestCase):
@@ -124,6 +124,77 @@ class ReservationApiTest(unittest.TestCase):
                                                      "queue": None,
                                                      "checked": False})
         self.assertIn(b'citizen ID is not registered', response.content)
+
+    def test_get_specific_reservation(self):
+        """Test get specified reservation by citizen id"""
+        endpoint = URL + "reservation"
+        date = str(datetime.now())
+        requests.post(url=endpoint, data={"citizen_id": 8888888888888,
+                                          "site_name": "Hospital 1",
+                                          "vaccine_name": "Pfizer",
+                                          "timestamp": date,
+                                          "queue": None,
+                                          "checked": False})
+        response = requests.get(endpoint+"/8888888888888")
+        requests.delete(endpoint+"/8888888888888")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Hospital 1', response.content)
+        self.assertIn(b'Pfizer', response.content)
+        self.assertIn(b'8888888888888', response.content)
+
+    def test_all_reservation(self):
+        """Test get all reservation"""
+        endpoint = URL + "reservation"
+        date = str(datetime.now())
+        requests.post(url=URL+"registration", data={"citizen_id": 8888888888889,
+                                                    "name": "Jimmy",
+                                                    "surname": "Doe",
+                                                    "birth_date": "16 Aug 2002",
+                                                    "occupation": "Student",
+                                                    "address": "Bangkok",
+                                                    "is_risk": False,
+                                                    "phone_number": "0888775991"})
+        requests.post(url=endpoint, data={"citizen_id": 8888888888888,
+                                          "site_name": "Hospital 1",
+                                          "vaccine_name": "Pfizer",
+                                          "timestamp": date,
+                                          "queue": None,
+                                          "checked": False})
+        requests.post(url=endpoint, data={"citizen_id": 8888888888889,
+                                          "site_name": "Hospital 2",
+                                          "vaccine_name": "Astra",
+                                          "timestamp": date,
+                                          "queue": None,
+                                          "checked": False})
+        response = requests.get(endpoint+"s")
+        requests.delete(endpoint+"/8888888888888")
+        requests.delete(endpoint+"/8888888888889")
+        requests.delete(URL+"registration/8888888888889")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Hospital 1', response.content)
+        self.assertIn(b'Pfizer', response.content)
+        self.assertIn(b'8888888888888', response.content)
+        self.assertIn(b'Hospital 2', response.content)
+        self.assertIn(b'Astra', response.content)
+        self.assertIn(b'8888888888889', response.content)
+
+    def test_get_reservation_document(self):
+        """Test get document for reservation api"""
+        endpoint = URL + "document"
+        response = requests.get(endpoint+"/reservation")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Return a reservation (citizen) data', response.content)
+        self.assertIn(b'Return all reservations data with it owner', response.content)
+        self.assertIn(b'To reserve vaccine reservation', response.content)
+        self.assertIn(b'To cancel the citizen unchecked vaccine reservation', response.content)
+
+    def test_get_reservation_database(self):
+        """Test get reservation database"""
+        endpoint = URL + "database"
+        response = requests.get(endpoint+"/reservation")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b'Reservation', response.content)
+        self.assertIn(b'Current database has', response.content)
 
     def tearDown(self):
         """Delete a registration from database"""
