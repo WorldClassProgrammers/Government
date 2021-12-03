@@ -2,7 +2,7 @@ REGISTRATION_FEEDBACK = {
     'success':              'registration success!',
     'missing_key':          'registration failed: missing some attribute',
     'registered':           'registration failed: this person already registered',
-    'phone':                'registration failed: this phone number already registered',
+    'phoned':                'registration failed: this phone number already registered',
     'invalid_id':           'registration failed: invalid citizen ID',
     'invalid_birthdate':    'registration failed: invalid birth date format',
     'invalid_age':          'registration failed: not archived minimum age',
