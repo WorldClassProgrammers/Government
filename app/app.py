@@ -94,6 +94,10 @@ def registration():
         logger.error(REGISTRATION_FEEDBACK["invalid_id"])
         return {"feedback": REGISTRATION_FEEDBACK["invalid_id"]}
 
+    if not is_phone_number(phone_number):
+        logger.error(REGISTRATION_FEEDBACK["invalid_phone_number"])
+        return {"feedback": REGISTRATION_FEEDBACK["invalid_phone_number"]}
+
     if is_registered(citizen_id):
         logger.error(REGISTRATION_FEEDBACK["registered"])
         return {"feedback": REGISTRATION_FEEDBACK["registered"]}
