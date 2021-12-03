@@ -98,6 +98,10 @@ def registration():
         logger.error(REGISTRATION_FEEDBACK["registered"])
         return {"feedback": REGISTRATION_FEEDBACK["registered"]}
 
+    if is_phoned(phone_number):
+        logger.error(REGISTRATION_FEEDBACK["phoned"])
+        return {"feedback": REGISTRATION_FEEDBACK["phoned"]}
+
     try:
         birth_date = parsing_date(birth_date)
         if delta_year(birth_date) <= 12:

@@ -51,7 +51,7 @@ class Citizen(db.Model):
     surname = db.Column(db.String(200))
     birth_date = db.Column(db.Date)
     occupation = db.Column(db.Text())
-    phone_number = db.Column(db.String(200))
+    phone_number = db.Column(db.String(200), unique=True)
     is_risk = db.Column(db.Boolean)
     address = db.Column(db.Text())
     vaccine_taken = db.Column(db.PickleType())

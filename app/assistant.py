@@ -88,7 +88,20 @@ def is_registered(citizen_id):
         bool: True if citizen_id is registered, False otherwise
     """
     return db.session.query(Citizen).filter(
-        Citizen.citizen_id == citizen_id).count() == 1
+        Citizen.citizen_id == citizen_id).count() >= 1
+
+
+def is_phoned(phone_number):
+    """Return True if phone_number is registered in database
+
+    Args:
+        phone_number (string): phone number
+
+    Returns:
+        bool: True if phone_number is registered, False otherwise
+    """
+    return db.session.query(Citizen).filter(
+        Citizen.phone_number == phone_number).count() >= 1
 
 
 def is_reserved(citizen_id):
