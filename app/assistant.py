@@ -66,6 +66,36 @@ def delta_year(birth_date: datetime):
     return datetime.now().year - birth_date.year
 
 
+def valid_id(thai_id) -> bool:
+    """
+    Validate a 13-digit Thai National ID, given as a number or string.
+    Args:
+        thai_id (string): thai citizen id
+    Returns:
+        bool: True if the checksum is true, False otherwise.
+    """
+    if isinstance(thai_id, int):
+        thai_id = str(thai_id)
+    elif not isinstance(thai_id, str):
+        return False
+    if len(thai_id) != 13:
+        return False
+    try:
+        digits = [int(d) for d in thai_id]
+    except ValueError:
+        return False
+    # First digit is never 0; 0 is used for other IDs such as corporate tax ID
+    if digits[0] == '0':
+        return False
+    # Apply checksum formula to first 12 digits
+    sum = 0
+    for i in range(0,12):
+        sum += digits[i]*(13 - i)
+    checksum = (11 - sum%11) % 10
+    # last digit is checksum
+    return checksum == digits[12]
+
+
 def is_citizen_id(citizen_id):
     """Return True if citizen_id is a string 13 digits
 
@@ -75,7 +105,11 @@ def is_citizen_id(citizen_id):
     Returns:
         bool: True if valid citizen_id, False otherwise
     """
-    return citizen_id.isdigit() and len(citizen_id) == 13
+    return citizen_id.isdigit() and len(citizen_id) == 13 and valid_id(citizen_id)
+
+
+def is_phone_number(phone_number):
+    return not (len(phone_number) != 10 or phone_number[0] != '0' or phone_number[1] not in ['6', '8', '9'])
 
 
 def is_registered(citizen_id):
