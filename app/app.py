@@ -50,6 +50,33 @@ swagger = Swagger(app, config=swagger_config)
 @cross_origin()
 @swag_from("swagger/singleID.yml")
 def citizen_get_by_citizen_id(citizen_id):
+    """Get the citizen information.
+    
+    Params:
+        citizen_id (string): the valid 13 digit citizen id
+
+    Response Codes:
+        200: get citizen information successfully
+        404: invalid citizen id or the citizen is not registered
+
+    Returns:
+        json data: the data of the citizen which includes
+            {
+                "citizen_id",
+                "name",
+                "surname",
+                "birth_date",
+                "occupation",
+                "phone_number",
+                "is_risk",
+                "address",
+                "vaccine_taken"
+            }
+        response: the redirection to the list of citizens page with 404 status code due to:
+            - invalid citizen id
+            - citizen not register or in database
+    """
+
     if not is_citizen_id(citizen_id):
         logger.error(REPORT_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
@@ -69,9 +96,37 @@ def citizen_get_by_citizen_id(citizen_id):
 @jwt_required()
 @swag_from("swagger/regispost.yml")
 def registration():
+    """Register a citizen into the database.
+    
+    Params (POST):
+        citizen_id (string): the valid 13 digit citizen id
+        name (string): 
+        surname (string): 
+        birth_date (string): the birthdate in the formats below
+            ['%d %b %Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']
+        occupation (string):
+        phone_number (string):
+        is_risk (bool):
+        address (string):
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+
+    Response Codes:
+        201: the citizen is registered successfully
+        401: the user does not have permission to invoke this endpoint
+        404: invalid citizen id or the citizen is not registered
+
+    Returns:
+        json data: the data of the citizen and the feedback of successful response
+        json data: the feedback of failed registration if the following occurs:
+            - invalid citizen id
+            - age is less than 12 (comparing birth_date to registration date)
+            - citizen already registered
+            - invalid birthdate values
+        json data: the feedback for unauthenticated usage of this endpoint
     """
-    Accept and validate registration information.
-    """
+
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.has_privilege and not user.is_admin:
         return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
@@ -143,8 +198,19 @@ def registration():
 @jwt_required()
 @swag_from("swagger/citizendel.yml")
 def reset_citizen_db():
-    """
-    Reset citizen database.
+    """Reset the citizen database.
+    
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+            and the authenticated user must have admin permissions.
+
+    Response Codes:
+        200: the citizen database has been reset successfully
+        401: user does not have admin privileges to reset the citizen table
+
+    Returns:
+        response: the redirection to the list of citizens page
+        json data: the feedback for unauthenticated usage of this endpoint
     """
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.is_admin:
@@ -167,8 +233,27 @@ def reset_citizen_db():
 @jwt_required()
 @swag_from("swagger/citizendel.yml")
 def delete_citizen_db(citizen_id):
-    """
-    Delete a citizen data.
+    """Remove a citizen from the database.
+    
+    Params (DELETE):
+        citizen_id (string): the valid 13 digit citizen id
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+            and the authenticated user must have admin permissions.
+
+
+    Response Codes:
+        200: the citizen has been removed from the database successfully
+        401: user does not have admin privileges to reset the citizen table
+        404: invalid citizen id or the citizen is not registered
+
+    Returns:
+        response: the redirection to the citizen database with 200 status code
+        response: "same as above" but with 404 status code due to:
+            - invalid citizen id
+            - citizen not register or in database
+        json data: the feedback for unauthenticated usage of this endpoint
     """
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.is_admin:
@@ -199,6 +284,22 @@ def delete_citizen_db(citizen_id):
 @app.route('/reservation/<citizen_id>', methods=['GET'])
 @cross_origin()
 def reservation_get_by_citizen_id(citizen_id):
+    """Get all reservations for a specific citizen.
+    
+    Params (GET):
+        citizen_id (string): the valid 13 digit citizen id
+
+    Response Codes:
+        200: gets the reservations of the citizen successfully
+        404: invalid citizen id or the citizen is not registered
+
+    Returns:
+        list[json data]: a list of reservations of the citizen
+        response: the redirection to the list of citizens page
+            with 404 status code due to:
+            - invalid citizen id
+            - citizen not register or in database
+    """
     if not is_citizen_id(citizen_id):
         logger.error(REPORT_FEEDBACK["invalid_id"])
         return redirect(url_for('citizen'), 404)
@@ -221,8 +322,13 @@ def reservation_get_by_citizen_id(citizen_id):
 @cross_origin()
 @swag_from("swagger/reserveget.yml")
 def get_reservation():
-    """
-    Send reservation information to service site.
+    """Get all reservations in the database.
+
+    Response Codes:
+        200: gets the reservations of the citizen successfully
+
+    Returns:
+    list[json data]: a list of all reservations in the database
     """
     reservations = []
     for reservation in db.session.query(Reservation).all():
@@ -241,9 +347,41 @@ def get_reservation():
 @jwt_required()
 @swag_from("swagger/reservepost.yml")
 def reservation():
+    """Make a reservation for a citizen and store it in the database.
+
+    Params (POST):
+        citizen_id (string): the valid 13 digit citizen id
+        site_name (string): the name of the appointed vaccination site
+        vaccine_name (string): the name of the reserved vaccine
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+
+    Response Codes:
+        201: the reservation has been made successfully
+        401: the user does not have permission to invoke this endpoint
+        404: invalid citizen id, the citizen is not registered,
+            the citizen has already reserved, or the vaccine name is invalid
+
+    Returns:
+        json data: the data of the reservation which includes:
+            {
+                "citizen_id",
+                "site_name",
+                "vaccine_name",
+                "timestamp",
+                "queue",
+                "checked",
+                "feedback"
+            }
+        json data: the feedback of failed registration if the following occurs:
+            - invalid citizen id
+            - citizen is not registered
+            - invalid vaccine name
+            - citizen already has a reservation
+        json data: the feedback for unauthenticated usage of this endpoint
     """
-    Add reservation data to the database
-    """
+
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.has_privilege and not user.is_admin:
         return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
@@ -301,9 +439,27 @@ def reservation():
 @jwt_required()
 @swag_from("swagger/reservedel.yml")
 def cancel_reservation(citizen_id):
+    """Cancel a citizen's reservation and remove it from the database.
+
+    Params (DELETE):
+        citizen_id (string): the valid 13 digit citizen id
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+
+    Response Codes:
+        200: the citizen is registered successfully
+        401: the user does not have permission to invoke this endpoint
+        404: invalid citizen id or the citizen is not registered
+
+    Returns:
+        json data: the feedback of successful response and status code 200
+        json data: the feedback of failed registration if the following occurs:
+            - invalid citizen id
+            - no reservation for this citizen
+        json data: the feedback for unauthenticated usage of this endpoint
     """
-    Cancel reservation and remove it from the database.
-    """
+
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.has_privilege and not user.is_admin:
         return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
@@ -342,6 +498,28 @@ def cancel_reservation(citizen_id):
 @jwt_required()
 @swag_from("swagger/queuepost.yml")
 def update_queue():
+    """Update the queue of the reservation.
+    
+    Params (POST):
+        citizen_id (string): the valid 13 digit citizen id
+        queue (string): the date of the appointment
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+
+    Response Codes:
+        200: the queue has been updated successfully
+        400: the queue or reservation is invalid
+        401: the user does not have permission to invoke this endpoint
+
+    Returns:
+        json data: the feedback of the queue being updated successfully
+        json data: the feedback of failed registration if the following occurs:
+            - invalid queue date
+            - invalid queue value
+            - invalid reservation
+        json data: the feedback for unauthenticated usage of this endpoint
+    """
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.has_privilege and not user.is_admin:
         return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
@@ -376,6 +554,32 @@ def update_queue():
 @jwt_required()
 @swag_from("swagger/reportpost.yml")
 def update_citizen_db():
+    """Accepts the report sent by service sites and update citizen's list of vaccine taken.
+
+    Params (POST):
+        citizen_id (string): the valid 13 digit citizen id
+        vaccine_name (string): the name of the vaccine taken
+        option (string): the method of how the user registered for the vaccine
+
+    Authentication:
+        jwt token: the bearer token that is required for invoking this endpoint
+
+    Response Codes:
+        200: the citizen vaccine taken information has been updated successfully
+        401: the user does not have permission to invoke this endpoint
+        400: invalid citizen id or the citizen is not registered
+
+    Returns:
+        json data: the feedback of a report being successfully taken.
+        json data: the feedback of failed reporting if the following occurs:
+            - invalid citizen id
+            - citizen has not been registered
+            - invalid vaccine name
+            - no reservation found for the citizen
+            - invalid vaccine sequence
+            - citizen already has reservation when the option is walk-in
+        json data: the feedback for unauthenticated usage of this endpoint
+    """
     user = Users.query.filter_by(username=get_jwt_identity()).first()
     if not user.has_privilege and not user.is_admin:
         return {"feedback": AUTHENTICATION_FEEDBACK["unauthenticated"]}
@@ -453,6 +657,21 @@ def update_citizen_db():
 @app.route('/register_user', methods=['POST'])
 @cross_origin()
 def register_user():
+    """Registers a user for API usage permissions.
+
+    Params (POST):
+        username (string): the username of the user
+        password (string): the password of the user
+
+    Response Codes:
+        201: the user has been registered successfully
+        400: the username has already been taken registered
+
+    Returns:
+        json data: the feedback of a user being registered successfully.
+        json data: the feedback of failing a user registration due to the
+            username has been taken already
+    """
     data = request.values
     feedback = ""
     try:
@@ -477,11 +696,22 @@ def register_user():
         return {"feedback": feedback}
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login_user():
-    print("ffp")
+    """Registers a user for API usage permissions.
+
+    Authorization:
+        username (string): the username of the user
+        password (string): the password of the user
+
+    Response Codes:
+        201: the user has been registered successfully
+        400: the username or password could not be verified
+    Returns:
+        json data: the access bearer token
+        response: the response and the json feedback of failed login
+    """
     auth = request.authorization
-    print("bar")
 
     if not auth or not auth.username or not auth.password:
         return make_response(
